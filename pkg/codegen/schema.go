@@ -1,11 +1,17 @@
 package codegen
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/pkg/errors"
+)
+
+var (
+	// Add ",omitempty" to fields json tag by default
+	omitEmptyJsonFields = true
 )
 
 // This describes a Schema, a type definition.
@@ -54,9 +60,34 @@ func (s Schema) GetAdditionalTypeDefs() []TypeDefinition {
 
 type Property struct {
 	Description   string
+	Required      bool
 	JsonFieldName string
 	Schema        Schema
-	Required      bool
+
+	extensions map[string]string
+}
+
+func (p Property) GoFieldTag() string {
+	// If the tag was provided by the extension.
+	tag, ok := p.extensions["tag"]
+	if ok {
+		if len(tag) > 0 {
+			return fmt.Sprintf("`%s`", tag)
+		}
+		return ""
+	}
+	// Otherwise we provide only json tag.
+	tag = p.JsonFieldName
+	switch p.extensions["json-omitempty"] {
+	case "true":
+		tag += ",omitempty"
+	case "false":
+	case "":
+		if omitEmptyJsonFields {
+			tag += ",omitempty"
+		}
+	}
+	return fmt.Sprintf("`json:\"%s\"`", tag)
 }
 
 func (p Property) GoFieldName() string {
@@ -65,8 +96,16 @@ func (p Property) GoFieldName() string {
 
 func (p Property) GoTypeDef() string {
 	typeDef := p.Schema.TypeDecl()
-	if !p.Schema.SkipOptionalPointer && !p.Required {
-		typeDef = "*" + typeDef
+	if !p.Schema.SkipOptionalPointer {
+		switch p.extensions["nullable"] {
+		case "true":
+			typeDef = "*" + typeDef
+		case "false":
+		case "":
+			if !p.Required {
+				typeDef = "*" + typeDef
+			}
+		}
 	}
 	return typeDef
 }
@@ -163,9 +202,6 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 				if err != nil {
 					return Schema{}, errors.Wrap(err, fmt.Sprintf("error generating Go schema for property '%s'", pName))
 				}
-
-				required := StringInArray(pName, schema.Required)
-
 				if pSchema.HasAdditionalProperties && pSchema.RefType == "" {
 					// If we have fields present which have additional properties,
 					// but are not a pre-defined type, we need to define a type
@@ -182,17 +218,9 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 
 					pSchema.RefType = typeName
 				}
-				description := ""
-				if p.Value != nil {
-					description = p.Value.Description
-				}
-				prop := Property{
-					JsonFieldName: pName,
-					Schema:        pSchema,
-					Required:      required,
-					Description:   description,
-				}
-				outSchema.Properties = append(outSchema.Properties, prop)
+				outSchema.Properties = append(outSchema.Properties,
+					parseProperty(pName, "", StringInArray(pName, schema.Required), pSchema, p),
+				)
 			}
 
 			outSchema.HasAdditionalProperties = SchemaHasAdditionalProperties(schema)
@@ -278,11 +306,47 @@ type SchemaDescriptor struct {
 }
 
 type FieldDescriptor struct {
-	Required bool   // Is the schema required? If not, we'll pass by pointer
+	Required bool   // Is the schema required?
 	GoType   string // The Go type needed to represent the json type.
 	GoName   string // The Go compatible type name for the type
 	JsonName string // The json type name for the type
 	IsRef    bool   // Is this schema a reference to predefined object?
+}
+
+// Parses OpenAPI property
+func parseProperty(name, description string, required bool, s Schema, sRef *openapi3.SchemaRef) Property {
+	prop := Property{
+		Description:   description,
+		Required:      required,
+		JsonFieldName: name,
+		Schema:        s,
+		extensions:    make(map[string]string),
+	}
+	if sRef == nil || sRef.Value == nil {
+		return prop
+	}
+	// If the description was not provided, then look for it in the scheme.
+	if description == "" {
+		prop.Description = sRef.Value.Description
+	}
+	for name, value := range sRef.Value.Extensions {
+		if !strings.HasPrefix(name, "x-go-") {
+			continue
+		}
+		s := strings.ReplaceAll(string(value.(json.RawMessage)), "\\", "")
+		// Remove quotes.
+		if len(s) > 1 && (s[0] == '"' && s[len(s)-1] == '"') {
+			s = s[1 : len(s)-1]
+		}
+		prop.extensions[name[5:]] = s
+	}
+	return prop
+}
+
+// SetOmitEmptyJSONFields changes the value of omitEmptyJSONFields variable that
+// determines whether to add ",omitempty" to json tag by default
+func SetOmitEmptyJSONFields(is bool) {
+	omitEmptyJsonFields = is
 }
 
 // Given a list of schema descriptors, produce corresponding field names with
@@ -297,12 +361,7 @@ func GenFieldsFromProperties(props []Property) []string {
 			// Make sure the actual field is separated by a newline.
 			field += fmt.Sprintf("\n%s\n", StringToGoComment(p.Description))
 		}
-		field += fmt.Sprintf("    %s %s", p.GoFieldName(), p.GoTypeDef())
-		if p.Required {
-			field += fmt.Sprintf(" `json:\"%s\"`", p.JsonFieldName)
-		} else {
-			field += fmt.Sprintf(" `json:\"%s,omitempty\"`", p.JsonFieldName)
-		}
+		field += fmt.Sprintf("    %s %s %s", p.GoFieldName(), p.GoTypeDef(), p.GoFieldTag())
 		fields = append(fields, field)
 	}
 	return fields

@@ -588,13 +588,9 @@ func GenerateParamsTypes(op OperationDefinition) []TypeDefinition {
 				Schema:   param.Schema,
 			})
 		}
-		prop := Property{
-			Description:   param.Spec.Description,
-			JsonFieldName: param.ParamName,
-			Required:      param.Required,
-			Schema:        pSchema,
-		}
-		s.Properties = append(s.Properties, prop)
+		s.Properties = append(s.Properties,
+			parseProperty(param.ParamName, param.Spec.Description, param.Required, param.Schema, param.Spec.Schema),
+		)
 	}
 
 	s.GoType = GenStructFromSchema(s)
