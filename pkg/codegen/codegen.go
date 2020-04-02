@@ -497,6 +497,10 @@ func GenerateAdditionalPropertyBoilerplate(t *template.Template, typeDefs []Type
 	if err != nil {
 		return "", errors.Wrap(err, "error generating additional properties code")
 	}
+	err = t.ExecuteTemplate(w, "additional-properties-xml.tmpl", context)
+	if err != nil {
+		return "", errors.Wrap(err, "error generating additional properties code")
+	}
 	err = w.Flush()
 	if err != nil {
 		return "", errors.Wrap(err, "error flushing output buffer for additional properties")

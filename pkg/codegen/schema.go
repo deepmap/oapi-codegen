@@ -19,6 +19,7 @@ type Schema struct {
 	AdditionalTypes          []TypeDefinition // We may need to generate auxiliary helper types, stored here
 
 	SkipOptionalPointer bool // Some types don't need a * in front when they're optional
+	IsArray             bool // Is this type an array
 }
 
 func (s Schema) IsRef() bool {
@@ -55,6 +56,7 @@ func (s Schema) GetAdditionalTypeDefs() []TypeDefinition {
 type Property struct {
 	Description   string
 	JsonFieldName string
+	XmlFieldName  string
 	Schema        Schema
 	Required      bool
 }
@@ -74,6 +76,7 @@ func (p Property) GoTypeDef() string {
 type TypeDefinition struct {
 	TypeName     string
 	JsonName     string
+	XmlName      string
 	ResponseName string
 	Schema       Schema
 }
@@ -192,6 +195,10 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 					Required:      required,
 					Description:   description,
 				}
+				prop.XmlFieldName = pName
+				if pSchema.IsArray {
+					prop.XmlFieldName = prop.XmlFieldName + "-list>" + prop.XmlFieldName
+				}
 				outSchema.Properties = append(outSchema.Properties, prop)
 			}
 
@@ -222,6 +229,7 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 				return Schema{}, errors.Wrap(err, "error generating type for array")
 			}
 			outSchema.GoType = "[]" + arrayType.TypeDecl()
+			outSchema.IsArray = true
 		case "integer":
 			// We default to int if format doesn't ask for something else.
 			if f == "int64" {
@@ -299,9 +307,9 @@ func GenFieldsFromProperties(props []Property) []string {
 		}
 		field += fmt.Sprintf("    %s %s", p.GoFieldName(), p.GoTypeDef())
 		if p.Required {
-			field += fmt.Sprintf(" `json:\"%s\"`", p.JsonFieldName)
+			field += fmt.Sprintf(" `json:\"%s\" xml:\"%s\"`", p.JsonFieldName, p.XmlFieldName)
 		} else {
-			field += fmt.Sprintf(" `json:\"%s,omitempty\"`", p.JsonFieldName)
+			field += fmt.Sprintf(" `json:\"%s,omitempty\" xml:\"%s,omitempty\"`", p.JsonFieldName, p.XmlFieldName)
 		}
 		fields = append(fields, field)
 	}
@@ -321,7 +329,7 @@ func GenStructFromSchema(schema Schema) string {
 		}
 
 		objectParts = append(objectParts,
-			fmt.Sprintf("AdditionalProperties map[string]%s `json:\"-\"`", addPropsType))
+			fmt.Sprintf("AdditionalProperties map[string]%s `json:\"-\" xml:\"-\"`", addPropsType))
 	}
 	objectParts = append(objectParts, "}")
 	return strings.Join(objectParts, "\n")

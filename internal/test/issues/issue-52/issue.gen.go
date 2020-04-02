@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
@@ -24,18 +25,18 @@ type ArrayValue []Value
 
 // Document defines model for Document.
 type Document struct {
-	Fields *Document_Fields `json:"fields,omitempty"`
+	Fields *Document_Fields `json:"fields,omitempty" xml:"fields,omitempty"`
 }
 
 // Document_Fields defines model for Document.Fields.
 type Document_Fields struct {
-	AdditionalProperties map[string]Value `json:"-"`
+	AdditionalProperties map[string]Value `json:"-" xml:"-"`
 }
 
 // Value defines model for Value.
 type Value struct {
-	ArrayValue  *ArrayValue `json:"arrayValue,omitempty"`
-	StringValue *string     `json:"stringValue,omitempty"`
+	ArrayValue  *ArrayValue `json:"arrayValue,omitempty" xml:"arrayValue,omitempty"`
+	StringValue *string     `json:"stringValue,omitempty" xml:"stringValue,omitempty"`
 }
 
 // Getter for additional properties for Document_Fields. Returns the specified
@@ -89,6 +90,16 @@ func (a Document_Fields) MarshalJSON() ([]byte, error) {
 		}
 	}
 	return json.Marshal(object)
+}
+
+// Override default XML handling for Document_Fields to handle AdditionalProperties
+func (a *Document_Fields) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for Document_Fields to handle AdditionalProperties
+func (a Document_Fields) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
 }
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function

@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -23,53 +24,53 @@ import (
 
 // AdditionalPropertiesObject1 defines model for AdditionalPropertiesObject1.
 type AdditionalPropertiesObject1 struct {
-	Id                   int            `json:"id"`
-	Name                 string         `json:"name"`
-	Optional             *string        `json:"optional,omitempty"`
-	AdditionalProperties map[string]int `json:"-"`
+	Id                   int            `json:"id" xml:"id"`
+	Name                 string         `json:"name" xml:"name"`
+	Optional             *string        `json:"optional,omitempty" xml:"optional,omitempty"`
+	AdditionalProperties map[string]int `json:"-" xml:"-"`
 }
 
 // AdditionalPropertiesObject2 defines model for AdditionalPropertiesObject2.
 type AdditionalPropertiesObject2 struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
+	Id   int    `json:"id" xml:"id"`
+	Name string `json:"name" xml:"name"`
 }
 
 // AdditionalPropertiesObject3 defines model for AdditionalPropertiesObject3.
 type AdditionalPropertiesObject3 struct {
-	Name                 string                 `json:"name"`
-	AdditionalProperties map[string]interface{} `json:"-"`
+	Name                 string                 `json:"name" xml:"name"`
+	AdditionalProperties map[string]interface{} `json:"-" xml:"-"`
 }
 
 // AdditionalPropertiesObject4 defines model for AdditionalPropertiesObject4.
 type AdditionalPropertiesObject4 struct {
-	Inner                AdditionalPropertiesObject4_Inner `json:"inner"`
-	Name                 string                            `json:"name"`
-	AdditionalProperties map[string]interface{}            `json:"-"`
+	Inner                AdditionalPropertiesObject4_Inner `json:"inner" xml:"inner"`
+	Name                 string                            `json:"name" xml:"name"`
+	AdditionalProperties map[string]interface{}            `json:"-" xml:"-"`
 }
 
 // AdditionalPropertiesObject4_Inner defines model for AdditionalPropertiesObject4.Inner.
 type AdditionalPropertiesObject4_Inner struct {
-	Name                 string                 `json:"name"`
-	AdditionalProperties map[string]interface{} `json:"-"`
+	Name                 string                 `json:"name" xml:"name"`
+	AdditionalProperties map[string]interface{} `json:"-" xml:"-"`
 }
 
 // AdditionalPropertiesObject5 defines model for AdditionalPropertiesObject5.
 type AdditionalPropertiesObject5 struct {
-	AdditionalProperties map[string]SchemaObject `json:"-"`
+	AdditionalProperties map[string]SchemaObject `json:"-" xml:"-"`
 }
 
 // ObjectWithJsonField defines model for ObjectWithJsonField.
 type ObjectWithJsonField struct {
-	Name   string          `json:"name"`
-	Value1 json.RawMessage `json:"value1"`
-	Value2 json.RawMessage `json:"value2,omitempty"`
+	Name   string          `json:"name" xml:"name"`
+	Value1 json.RawMessage `json:"value1" xml:"value1"`
+	Value2 json.RawMessage `json:"value2,omitempty" xml:"value2,omitempty"`
 }
 
 // SchemaObject defines model for SchemaObject.
 type SchemaObject struct {
-	FirstName string `json:"firstName"`
-	Role      string `json:"role"`
+	FirstName string `json:"firstName" xml:"firstName"`
+	Role      string `json:"role" xml:"role"`
 }
 
 // ParameterObject defines model for ParameterObject.
@@ -77,47 +78,47 @@ type ParameterObject string
 
 // ResponseObject defines model for ResponseObject.
 type ResponseObject struct {
-	Field SchemaObject `json:"Field"`
+	Field SchemaObject `json:"Field" xml:"Field"`
 }
 
 // RequestBody defines model for RequestBody.
 type RequestBody struct {
-	Field SchemaObject `json:"Field"`
+	Field SchemaObject `json:"Field" xml:"Field"`
 }
 
 // ParamsWithAddPropsParams_P1 defines parameters for ParamsWithAddProps.
 type ParamsWithAddPropsParams_P1 struct {
-	AdditionalProperties map[string]interface{} `json:"-"`
+	AdditionalProperties map[string]interface{} `json:"-" xml:"-"`
 }
 
 // ParamsWithAddPropsParams defines parameters for ParamsWithAddProps.
 type ParamsWithAddPropsParams struct {
 
 	// This parameter has additional properties
-	P1 ParamsWithAddPropsParams_P1 `json:"p1"`
+	P1 ParamsWithAddPropsParams_P1 `json:"p1" xml:"p1"`
 
 	// This parameter has an anonymous inner property which needs to be
 	// turned into a proper type for additionalProperties to work
 	P2 struct {
-		Inner ParamsWithAddPropsParams_P2_Inner `json:"inner"`
-	} `json:"p2"`
+		Inner ParamsWithAddPropsParams_P2_Inner `json:"inner" xml:"inner"`
+	} `json:"p2" xml:"p2"`
 }
 
 // ParamsWithAddPropsParams_P2_Inner defines parameters for ParamsWithAddProps.
 type ParamsWithAddPropsParams_P2_Inner struct {
-	AdditionalProperties map[string]string `json:"-"`
+	AdditionalProperties map[string]string `json:"-" xml:"-"`
 }
 
 // BodyWithAddPropsJSONBody defines parameters for BodyWithAddProps.
 type BodyWithAddPropsJSONBody struct {
-	Inner                BodyWithAddPropsJSONBody_Inner `json:"inner"`
-	Name                 string                         `json:"name"`
-	AdditionalProperties map[string]interface{}         `json:"-"`
+	Inner                BodyWithAddPropsJSONBody_Inner `json:"inner" xml:"inner"`
+	Name                 string                         `json:"name" xml:"name"`
+	AdditionalProperties map[string]interface{}         `json:"-" xml:"-"`
 }
 
 // BodyWithAddPropsJSONBody_Inner defines parameters for BodyWithAddProps.
 type BodyWithAddPropsJSONBody_Inner struct {
-	AdditionalProperties map[string]int `json:"-"`
+	AdditionalProperties map[string]int `json:"-" xml:"-"`
 }
 
 // BodyWithAddPropsRequestBody defines body for BodyWithAddProps for application/json ContentType.
@@ -359,6 +360,46 @@ func (a BodyWithAddPropsJSONBody_Inner) MarshalJSON() ([]byte, error) {
 		}
 	}
 	return json.Marshal(object)
+}
+
+// Override default XML handling for ParamsWithAddPropsParams_P1 to handle AdditionalProperties
+func (a *ParamsWithAddPropsParams_P1) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for ParamsWithAddPropsParams_P1 to handle AdditionalProperties
+func (a ParamsWithAddPropsParams_P1) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for ParamsWithAddPropsParams_P2_Inner to handle AdditionalProperties
+func (a *ParamsWithAddPropsParams_P2_Inner) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for ParamsWithAddPropsParams_P2_Inner to handle AdditionalProperties
+func (a ParamsWithAddPropsParams_P2_Inner) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for BodyWithAddPropsJSONBody to handle AdditionalProperties
+func (a *BodyWithAddPropsJSONBody) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for BodyWithAddPropsJSONBody to handle AdditionalProperties
+func (a BodyWithAddPropsJSONBody) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for BodyWithAddPropsJSONBody_Inner to handle AdditionalProperties
+func (a *BodyWithAddPropsJSONBody_Inner) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for BodyWithAddPropsJSONBody_Inner to handle AdditionalProperties
+func (a BodyWithAddPropsJSONBody_Inner) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
 }
 
 // Getter for additional properties for AdditionalPropertiesObject1. Returns the specified
@@ -717,6 +758,56 @@ func (a AdditionalPropertiesObject5) MarshalJSON() ([]byte, error) {
 		}
 	}
 	return json.Marshal(object)
+}
+
+// Override default XML handling for AdditionalPropertiesObject1 to handle AdditionalProperties
+func (a *AdditionalPropertiesObject1) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for AdditionalPropertiesObject1 to handle AdditionalProperties
+func (a AdditionalPropertiesObject1) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for AdditionalPropertiesObject3 to handle AdditionalProperties
+func (a *AdditionalPropertiesObject3) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for AdditionalPropertiesObject3 to handle AdditionalProperties
+func (a AdditionalPropertiesObject3) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for AdditionalPropertiesObject4 to handle AdditionalProperties
+func (a *AdditionalPropertiesObject4) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for AdditionalPropertiesObject4 to handle AdditionalProperties
+func (a AdditionalPropertiesObject4) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for AdditionalPropertiesObject4_Inner to handle AdditionalProperties
+func (a *AdditionalPropertiesObject4_Inner) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for AdditionalPropertiesObject4_Inner to handle AdditionalProperties
+func (a AdditionalPropertiesObject4_Inner) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for AdditionalPropertiesObject5 to handle AdditionalProperties
+func (a *AdditionalPropertiesObject5) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
+}
+
+// Override default XML handling for AdditionalPropertiesObject5 to handle AdditionalProperties
+func (a AdditionalPropertiesObject5) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return errors.New("additional properties are not supported via xml")
 }
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
