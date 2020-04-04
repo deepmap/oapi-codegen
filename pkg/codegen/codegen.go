@@ -39,6 +39,7 @@ type Options struct {
 	EmbedSpec          bool              // Whether to embed the swagger spec in the generated code
 	SkipFmt            bool              // Whether to skip go fmt on the generated code
 	SkipPrune          bool              // Whether to skip pruning unused components on the generated code
+	MakeClientPrivate  bool              // Whether to make the generated API client private to the package it is generated into
 	IncludeTags        []string          // Only include operations that have one of these tags. Ignored when empty.
 	ExcludeTags        []string          // Exclude operations that have one of these tags. Ignored when empty.
 	UserTemplates      map[string]string // Override built-in templates from user-provided files
@@ -143,9 +144,14 @@ func Generate(swagger *openapi3.Swagger, packageName string, opts Options) (stri
 		}
 	}
 
+	args := clientGenArgs{
+		Operations:        ops,
+		MakeClientPrivate: opts.MakeClientPrivate,
+	}
+
 	var clientOut string
 	if opts.GenerateClient {
-		clientOut, err = GenerateClient(t, ops)
+		clientOut, err = GenerateClient(t, args)
 		if err != nil {
 			return "", errors.Wrap(err, "error generating client")
 		}
@@ -153,7 +159,7 @@ func Generate(swagger *openapi3.Swagger, packageName string, opts Options) (stri
 
 	var clientWithResponsesOut string
 	if opts.GenerateClient {
-		clientWithResponsesOut, err = GenerateClientWithResponses(t, ops)
+		clientWithResponsesOut, err = GenerateClientWithResponses(t, args)
 		if err != nil {
 			return "", errors.Wrap(err, "error generating client with responses")
 		}

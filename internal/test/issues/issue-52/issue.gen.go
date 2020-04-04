@@ -116,10 +116,12 @@ type Client struct {
 	RequestEditor RequestEditorFn
 }
 
+var _ ClientInterface = &Client{}
+
 // ClientOption allows setting custom parameters during construction
 type ClientOption func(*Client) error
 
-// Creates a new Client, with reasonable defaults
+// NewClient Creates a new Client, with reasonable defaults
 func NewClient(server string, opts ...ClientOption) (*Client, error) {
 	// create a client with sane default values
 	client := Client{
@@ -151,6 +153,18 @@ func WithHTTPClient(doer HttpRequestDoer) ClientOption {
 	}
 }
 
+// WithBaseURL overrides the baseURL.
+func WithBaseURL(baseURL string) ClientOption {
+	return func(c *Client) error {
+		newBaseURL, err := url.Parse(baseURL)
+		if err != nil {
+			return err
+		}
+		c.Server = newBaseURL.String()
+		return nil
+	}
+}
+
 // WithRequestEditorFn allows setting up a callback function, which will be
 // called right before sending the request. This can be used to mutate the request.
 func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
@@ -164,6 +178,8 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 type ClientInterface interface {
 	// ExampleGet request
 	ExampleGet(ctx context.Context) (*http.Response, error)
+	// ExampleGetWithResponse request  and parse response
+	ExampleGetWithResponse(ctx context.Context) (*ExampleGetResponse, error)
 }
 
 func (c *Client) ExampleGet(ctx context.Context) (*http.Response, error) {
@@ -208,41 +224,14 @@ func NewExampleGetRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// ClientWithResponses builds on ClientInterface to offer response payloads
-type ClientWithResponses struct {
-	ClientInterface
-}
-
-// NewClientWithResponses creates a new ClientWithResponses, which wraps
-// Client with return type handling
-func NewClientWithResponses(server string, opts ...ClientOption) (*ClientWithResponses, error) {
-	client, err := NewClient(server, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &ClientWithResponses{client}, nil
-}
-
-// WithBaseURL overrides the baseURL.
-func WithBaseURL(baseURL string) ClientOption {
-	return func(c *Client) error {
-		newBaseURL, err := url.Parse(baseURL)
-		if err != nil {
-			return err
-		}
-		c.Server = newBaseURL.String()
-		return nil
-	}
-}
-
-type exampleGetResponse struct {
+type ExampleGetResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *Document
 }
 
 // Status returns HTTPResponse.Status
-func (r exampleGetResponse) Status() string {
+func (r ExampleGetResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -250,7 +239,7 @@ func (r exampleGetResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r exampleGetResponse) StatusCode() int {
+func (r ExampleGetResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -258,7 +247,7 @@ func (r exampleGetResponse) StatusCode() int {
 }
 
 // ExampleGetWithResponse request returning *ExampleGetResponse
-func (c *ClientWithResponses) ExampleGetWithResponse(ctx context.Context) (*exampleGetResponse, error) {
+func (c *Client) ExampleGetWithResponse(ctx context.Context) (*ExampleGetResponse, error) {
 	rsp, err := c.ExampleGet(ctx)
 	if err != nil {
 		return nil, err
@@ -267,14 +256,14 @@ func (c *ClientWithResponses) ExampleGetWithResponse(ctx context.Context) (*exam
 }
 
 // ParseExampleGetResponse parses an HTTP response from a ExampleGetWithResponse call
-func ParseExampleGetResponse(rsp *http.Response) (*exampleGetResponse, error) {
+func ParseExampleGetResponse(rsp *http.Response) (*ExampleGetResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer rsp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &exampleGetResponse{
+	response := &ExampleGetResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
