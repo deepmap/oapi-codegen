@@ -81,6 +81,8 @@ func main() {
 			opts.SkipFmt = true
 		case "skip-prune":
 			opts.SkipPrune = true
+		case "graphql":
+			opts.GenerateGraphQL = true
 		default:
 			fmt.Printf("unknown generate option %s\n", g)
 			flag.PrintDefaults()
@@ -117,7 +119,9 @@ func main() {
 			errExit("error writing generated code to file: %s", err)
 		}
 	} else {
-		fmt.Println(code)
+		if !opts.GenerateGraphQL { // graphql do not require outputFile
+			fmt.Println(code)
+		}
 	}
 }
 
