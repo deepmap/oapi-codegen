@@ -5,8 +5,8 @@ package server
 
 import (
 	"fmt"
-	"github.com/deepmap/oapi-codegen/pkg/runtime"
-	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
+	"github.com/tidepool-org/oapi-codegen/pkg/runtime"
+	openapi_types "github.com/tidepool-org/oapi-codegen/pkg/types"
 	"github.com/go-chi/chi"
 	"net/http"
 	"time"
