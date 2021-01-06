@@ -232,6 +232,14 @@ func TestSplitParameter(t *testing.T) {
 	assert.EqualValues(t, expectedExplodedObject, result)
 }
 
+type MapParams_Tags struct {
+	AdditionalProperties map[string]string `json:"-"`
+}
+
+type TestMapParams struct {
+	Tags           *MapParams_Tags `json:"tags,omitempty"`
+}
+
 func TestBindQueryParameter(t *testing.T) {
 	t.Run("deepObject", func(t *testing.T) {
 		type ID struct {
@@ -260,6 +268,18 @@ func TestBindQueryParameter(t *testing.T) {
 		err := BindQueryParameter("deepObject", true, false, paramName, queryParams, &actual)
 		assert.NoError(t, err)
 		assert.Equal(t, expectedDeepObject, actual)
+
+		paramName = "tags"
+		queryParams = url.Values{
+			"tags[user]":      {"testUser"},
+		}
+		var params TestMapParams
+		expectedMapDeepObject := &MapParams_Tags{
+				AdditionalProperties: map[string]string{"user": "testUser"},
+		}
+		err = BindQueryParameter("deepObject", true, false, paramName, queryParams, &params.Tags)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedMapDeepObject, params.Tags)
 	})
 
 	t.Run("form", func(t *testing.T) {
