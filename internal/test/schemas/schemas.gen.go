@@ -51,8 +51,8 @@ type NullableProperties struct {
 	RequiredAndNullable *string `json:"requiredAndNullable"`
 }
 
-// StringInPath defines model for StringInPath.
-type StringInPath string
+// StringInPathParam defines model for StringInPath.
+type StringInPathParam string
 
 // Issue185JSONBody defines parameters for Issue185.
 type Issue185JSONBody NullableProperties
@@ -156,7 +156,7 @@ type ClientInterface interface {
 	Issue185(ctx context.Context, body Issue185JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// Issue209 request
-	Issue209(ctx context.Context, str StringInPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+	Issue209(ctx context.Context, str StringInPathParam, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// Issue30 request
 	Issue30(ctx context.Context, pFallthrough string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -214,7 +214,7 @@ func (c *Client) Issue185(ctx context.Context, body Issue185JSONRequestBody, req
 	return c.Client.Do(req)
 }
 
-func (c *Client) Issue209(ctx context.Context, str StringInPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) Issue209(ctx context.Context, str StringInPathParam, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewIssue209Request(c.Server, str)
 	if err != nil {
 		return nil, err
@@ -364,7 +364,7 @@ func NewIssue185RequestWithBody(server string, contentType string, body io.Reade
 }
 
 // NewIssue209Request generates requests for Issue209
-func NewIssue209Request(server string, str StringInPath) (*http.Request, error) {
+func NewIssue209Request(server string, str StringInPathParam) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -577,7 +577,7 @@ type ClientWithResponsesInterface interface {
 	Issue185WithResponse(ctx context.Context, body Issue185JSONRequestBody) (*Issue185Response, error)
 
 	// Issue209 request
-	Issue209WithResponse(ctx context.Context, str StringInPath) (*Issue209Response, error)
+	Issue209WithResponse(ctx context.Context, str StringInPathParam) (*Issue209Response, error)
 
 	// Issue30 request
 	Issue30WithResponse(ctx context.Context, pFallthrough string) (*Issue30Response, error)
@@ -785,7 +785,7 @@ func (c *ClientWithResponses) Issue185WithResponse(ctx context.Context, body Iss
 }
 
 // Issue209WithResponse request returning *Issue209Response
-func (c *ClientWithResponses) Issue209WithResponse(ctx context.Context, str StringInPath) (*Issue209Response, error) {
+func (c *ClientWithResponses) Issue209WithResponse(ctx context.Context, str StringInPathParam) (*Issue209Response, error) {
 	rsp, err := c.Issue209(ctx, str)
 	if err != nil {
 		return nil, err
@@ -1021,7 +1021,7 @@ type ServerInterface interface {
 	Issue185(ctx echo.Context) error
 
 	// (GET /issues/209/${str})
-	Issue209(ctx echo.Context, str StringInPath) error
+	Issue209(ctx echo.Context, str StringInPathParam) error
 
 	// (GET /issues/30/{fallthrough})
 	Issue30(ctx echo.Context, pFallthrough string) error
@@ -1075,7 +1075,7 @@ func (w *ServerInterfaceWrapper) Issue185(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) Issue209(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "str" -------------
-	var str StringInPath
+	var str StringInPathParam
 
 	err = runtime.BindStyledParameter("simple", false, "str", ctx.Param("str"), &str)
 	if err != nil {
