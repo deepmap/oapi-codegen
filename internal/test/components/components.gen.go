@@ -877,7 +877,8 @@ func NewEnsureEverythingIsReferencedRequest(server string, body EnsureEverything
 func NewEnsureEverythingIsReferencedRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
-	queryUrl, err := url.Parse(server)
+	var queryUrl *url.URL
+	queryUrl, err = url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
@@ -892,7 +893,8 @@ func NewEnsureEverythingIsReferencedRequestWithBody(server string, contentType s
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryUrl.String(), body)
+	var req *http.Request
+	req, err = http.NewRequest("GET", queryUrl.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -906,7 +908,8 @@ func NewEnsureEverythingIsReferencedRequestWithBody(server string, contentType s
 func NewParamsWithAddPropsRequest(server string, params *ParamsWithAddPropsParams) (*http.Request, error) {
 	var err error
 
-	queryUrl, err := url.Parse(server)
+	var queryUrl *url.URL
+	queryUrl, err = url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
@@ -923,9 +926,16 @@ func NewParamsWithAddPropsRequest(server string, params *ParamsWithAddPropsParam
 
 	queryValues := queryUrl.Query()
 
-	if queryFrag, err := runtime.StyleParam("simple", true, "p1", params.P1); err != nil {
+	var queryFrag string
+	var parsed url.Values
+	var queryParamBuf []byte
+	_ = queryFrag
+	_ = parsed
+	_ = queryParamBuf
+
+	if queryFrag, err = runtime.StyleParam("simple", true, "p1", params.P1); err != nil {
 		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+	} else if parsed, err = url.ParseQuery(queryFrag); err != nil {
 		return nil, err
 	} else {
 		for k, v := range parsed {
@@ -935,9 +945,9 @@ func NewParamsWithAddPropsRequest(server string, params *ParamsWithAddPropsParam
 		}
 	}
 
-	if queryFrag, err := runtime.StyleParam("form", true, "p2", params.P2); err != nil {
+	if queryFrag, err = runtime.StyleParam("form", true, "p2", params.P2); err != nil {
 		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+	} else if parsed, err = url.ParseQuery(queryFrag); err != nil {
 		return nil, err
 	} else {
 		for k, v := range parsed {
@@ -949,7 +959,8 @@ func NewParamsWithAddPropsRequest(server string, params *ParamsWithAddPropsParam
 
 	queryUrl.RawQuery = queryValues.Encode()
 
-	req, err := http.NewRequest("GET", queryUrl.String(), nil)
+	var req *http.Request
+	req, err = http.NewRequest("GET", queryUrl.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -972,7 +983,8 @@ func NewBodyWithAddPropsRequest(server string, body BodyWithAddPropsJSONRequestB
 func NewBodyWithAddPropsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
-	queryUrl, err := url.Parse(server)
+	var queryUrl *url.URL
+	queryUrl, err = url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
@@ -987,7 +999,8 @@ func NewBodyWithAddPropsRequestWithBody(server string, contentType string, body 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryUrl.String(), body)
+	var req *http.Request
+	req, err = http.NewRequest("POST", queryUrl.String(), body)
 	if err != nil {
 		return nil, err
 	}

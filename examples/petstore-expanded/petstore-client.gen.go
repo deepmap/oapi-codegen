@@ -210,7 +210,8 @@ func (c *Client) FindPetById(ctx context.Context, id int64, reqEditors ...Reques
 func NewFindPetsRequest(server string, params *FindPetsParams) (*http.Request, error) {
 	var err error
 
-	queryUrl, err := url.Parse(server)
+	var queryUrl *url.URL
+	queryUrl, err = url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
@@ -227,11 +228,18 @@ func NewFindPetsRequest(server string, params *FindPetsParams) (*http.Request, e
 
 	queryValues := queryUrl.Query()
 
+	var queryFrag string
+	var parsed url.Values
+	var queryParamBuf []byte
+	_ = queryFrag
+	_ = parsed
+	_ = queryParamBuf
+
 	if params.Tags != nil {
 
-		if queryFrag, err := runtime.StyleParam("form", true, "tags", *params.Tags); err != nil {
+		if queryFrag, err = runtime.StyleParam("form", true, "tags", *params.Tags); err != nil {
 			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		} else if parsed, err = url.ParseQuery(queryFrag); err != nil {
 			return nil, err
 		} else {
 			for k, v := range parsed {
@@ -245,9 +253,9 @@ func NewFindPetsRequest(server string, params *FindPetsParams) (*http.Request, e
 
 	if params.Limit != nil {
 
-		if queryFrag, err := runtime.StyleParam("form", true, "limit", *params.Limit); err != nil {
+		if queryFrag, err = runtime.StyleParam("form", true, "limit", *params.Limit); err != nil {
 			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		} else if parsed, err = url.ParseQuery(queryFrag); err != nil {
 			return nil, err
 		} else {
 			for k, v := range parsed {
@@ -261,7 +269,8 @@ func NewFindPetsRequest(server string, params *FindPetsParams) (*http.Request, e
 
 	queryUrl.RawQuery = queryValues.Encode()
 
-	req, err := http.NewRequest("GET", queryUrl.String(), nil)
+	var req *http.Request
+	req, err = http.NewRequest("GET", queryUrl.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +293,8 @@ func NewAddPetRequest(server string, body AddPetJSONRequestBody) (*http.Request,
 func NewAddPetRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
-	queryUrl, err := url.Parse(server)
+	var queryUrl *url.URL
+	queryUrl, err = url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
@@ -299,7 +309,8 @@ func NewAddPetRequestWithBody(server string, contentType string, body io.Reader)
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryUrl.String(), body)
+	var req *http.Request
+	req, err = http.NewRequest("POST", queryUrl.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +331,8 @@ func NewDeletePetRequest(server string, id int64) (*http.Request, error) {
 		return nil, err
 	}
 
-	queryUrl, err := url.Parse(server)
+	var queryUrl *url.URL
+	queryUrl, err = url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
@@ -335,7 +347,8 @@ func NewDeletePetRequest(server string, id int64) (*http.Request, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("DELETE", queryUrl.String(), nil)
+	var req *http.Request
+	req, err = http.NewRequest("DELETE", queryUrl.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -354,7 +367,8 @@ func NewFindPetByIdRequest(server string, id int64) (*http.Request, error) {
 		return nil, err
 	}
 
-	queryUrl, err := url.Parse(server)
+	var queryUrl *url.URL
+	queryUrl, err = url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
@@ -369,7 +383,8 @@ func NewFindPetByIdRequest(server string, id int64) (*http.Request, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryUrl.String(), nil)
+	var req *http.Request
+	req, err = http.NewRequest("GET", queryUrl.String(), nil)
 	if err != nil {
 		return nil, err
 	}
