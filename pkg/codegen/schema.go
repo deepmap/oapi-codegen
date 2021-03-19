@@ -23,7 +23,26 @@ type Schema struct {
 	AdditionalTypes          []TypeDefinition // We may need to generate auxiliary helper types, stored here
 
 	SkipOptionalPointer bool // Some types don't need a * in front when they're optional
+
+	DefinedComp ComponentType // Indicates where was defined
 }
+
+// ComponentType ...
+type ComponentType int
+
+//
+const (
+	ComponentTypeUnknown ComponentType = iota
+	ComponentTypeSchema
+	ComponentTypeParameter
+	ComponentTypeSecurityScheme
+	ComponentTypeRequestBody
+	ComponentTypeResponse
+	ComponentTypeHeader
+	ComponentTypeExample
+	ComponentTypeLink
+	ComponentTypeCallback
+)
 
 func (s Schema) IsRef() bool {
 	return s.RefType != ""
@@ -147,7 +166,8 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 	}
 
 	outSchema := Schema{
-		RefType: refType,
+		RefType:     refType,
+		DefinedComp: ComponentTypeSchema,
 	}
 
 	// Check for custom Go type extension
@@ -484,7 +504,9 @@ func paramToGoType(param *openapi3.Parameter, path []string) (Schema, error) {
 
 	// We can process the schema through the generic schema processor
 	if param.Schema != nil {
-		return GenerateGoSchema(param.Schema, path)
+		schema, err := GenerateGoSchema(param.Schema, path)
+		schema.DefinedComp = ComponentTypeParameter
+		return schema, err
 	}
 
 	// At this point, we have a content type. We know how to deal with
@@ -492,7 +514,8 @@ func paramToGoType(param *openapi3.Parameter, path []string) (Schema, error) {
 	// so we'll return the parameter as a string, not bothering to decode it.
 	if len(param.Content) > 1 {
 		return Schema{
-			GoType: "string",
+			GoType:      "string",
+			DefinedComp: ComponentTypeParameter,
 		}, nil
 	}
 
@@ -501,10 +524,13 @@ func paramToGoType(param *openapi3.Parameter, path []string) (Schema, error) {
 	if !found {
 		// If we don't have json, it's a string
 		return Schema{
-			GoType: "string",
+			GoType:      "string",
+			DefinedComp: ComponentTypeParameter,
 		}, nil
 	}
 
 	// For json, we go through the standard schema mechanism
-	return GenerateGoSchema(mt.Schema, path)
+	schema, err := GenerateGoSchema(mt.Schema, path)
+	schema.DefinedComp = ComponentTypeParameter
+	return schema, err
 }
