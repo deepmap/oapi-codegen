@@ -2518,7 +2518,8 @@ type ServerInterface interface {
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
-	Handler ServerInterface
+	Handler     ServerInterface
+	Middlewares []echo.MiddlewareFunc
 }
 
 // GetContentObject converts echo context to params.
@@ -2533,7 +2534,15 @@ func (w *ServerInterfaceWrapper) GetContentObject(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetContentObject(ctx, param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetContentObject(ctx, param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2627,7 +2636,15 @@ func (w *ServerInterfaceWrapper) GetCookie(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetCookie(ctx, params)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetCookie(ctx, params)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2746,7 +2763,15 @@ func (w *ServerInterfaceWrapper) GetHeader(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetHeader(ctx, params)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetHeader(ctx, params)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2762,7 +2787,15 @@ func (w *ServerInterfaceWrapper) GetLabelExplodeArray(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetLabelExplodeArray(ctx, param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetLabelExplodeArray(ctx, param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2778,7 +2811,15 @@ func (w *ServerInterfaceWrapper) GetLabelExplodeObject(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetLabelExplodeObject(ctx, param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetLabelExplodeObject(ctx, param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2794,7 +2835,15 @@ func (w *ServerInterfaceWrapper) GetLabelNoExplodeArray(ctx echo.Context) error 
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetLabelNoExplodeArray(ctx, param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetLabelNoExplodeArray(ctx, param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2810,7 +2859,15 @@ func (w *ServerInterfaceWrapper) GetLabelNoExplodeObject(ctx echo.Context) error
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetLabelNoExplodeObject(ctx, param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetLabelNoExplodeObject(ctx, param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2826,7 +2883,15 @@ func (w *ServerInterfaceWrapper) GetMatrixExplodeArray(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetMatrixExplodeArray(ctx, id)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetMatrixExplodeArray(ctx, id)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2842,7 +2907,15 @@ func (w *ServerInterfaceWrapper) GetMatrixExplodeObject(ctx echo.Context) error 
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetMatrixExplodeObject(ctx, id)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetMatrixExplodeObject(ctx, id)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2858,7 +2931,15 @@ func (w *ServerInterfaceWrapper) GetMatrixNoExplodeArray(ctx echo.Context) error
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetMatrixNoExplodeArray(ctx, id)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetMatrixNoExplodeArray(ctx, id)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2874,7 +2955,15 @@ func (w *ServerInterfaceWrapper) GetMatrixNoExplodeObject(ctx echo.Context) erro
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetMatrixNoExplodeObject(ctx, id)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetMatrixNoExplodeObject(ctx, id)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2887,7 +2976,15 @@ func (w *ServerInterfaceWrapper) GetPassThrough(ctx echo.Context) error {
 	param = ctx.Param("param")
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetPassThrough(ctx, param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetPassThrough(ctx, param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2905,7 +3002,15 @@ func (w *ServerInterfaceWrapper) GetDeepObject(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetDeepObject(ctx, params)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetDeepObject(ctx, params)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2978,7 +3083,15 @@ func (w *ServerInterfaceWrapper) GetQueryForm(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetQueryForm(ctx, params)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetQueryForm(ctx, params)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -2994,7 +3107,15 @@ func (w *ServerInterfaceWrapper) GetSimpleExplodeArray(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetSimpleExplodeArray(ctx, param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetSimpleExplodeArray(ctx, param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -3010,7 +3131,15 @@ func (w *ServerInterfaceWrapper) GetSimpleExplodeObject(ctx echo.Context) error 
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetSimpleExplodeObject(ctx, param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetSimpleExplodeObject(ctx, param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -3026,7 +3155,15 @@ func (w *ServerInterfaceWrapper) GetSimpleNoExplodeArray(ctx echo.Context) error
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetSimpleNoExplodeArray(ctx, param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetSimpleNoExplodeArray(ctx, param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -3042,7 +3179,15 @@ func (w *ServerInterfaceWrapper) GetSimpleNoExplodeObject(ctx echo.Context) erro
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetSimpleNoExplodeObject(ctx, param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetSimpleNoExplodeObject(ctx, param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -3058,7 +3203,15 @@ func (w *ServerInterfaceWrapper) GetSimplePrimitive(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetSimplePrimitive(ctx, param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetSimplePrimitive(ctx, param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -3077,6 +3230,18 @@ type EchoRouter interface {
 	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 }
 
+// RegisterOptions contains options that alter how routes get registered.
+type RegisterOptions struct {
+	// BaseURL is prepended to the registered paths, so that the paths
+	// can be served under a prefix.
+	BaseURL string
+
+	// Middlewares is a slice of middleware functions that get applied
+	// in sequence after the parameters get decoded and additional context
+	// (for instance, scopes) gets set by the ServerInterfaceWrapper.
+	Middlewares []echo.MiddlewareFunc
+}
+
 // RegisterHandlers adds each server route to the EchoRouter.
 func RegisterHandlers(router EchoRouter, si ServerInterface) {
 	RegisterHandlersWithBaseURL(router, si, "")
@@ -3085,30 +3250,36 @@ func RegisterHandlers(router EchoRouter, si ServerInterface) {
 // Registers handlers, and prepends BaseURL to the paths, so that the paths
 // can be served under a prefix.
 func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
+	RegisterHandlersWithOptions(router, si, RegisterOptions{BaseURL: baseURL})
+}
+
+// Registers handlers using options.
+func RegisterHandlersWithOptions(router EchoRouter, si ServerInterface, opts RegisterOptions) {
 
 	wrapper := ServerInterfaceWrapper{
-		Handler: si,
+		Handler:     si,
+		Middlewares: opts.Middlewares,
 	}
 
-	router.GET(baseURL+"/contentObject/:param", wrapper.GetContentObject)
-	router.GET(baseURL+"/cookie", wrapper.GetCookie)
-	router.GET(baseURL+"/header", wrapper.GetHeader)
-	router.GET(baseURL+"/labelExplodeArray/:param", wrapper.GetLabelExplodeArray)
-	router.GET(baseURL+"/labelExplodeObject/:param", wrapper.GetLabelExplodeObject)
-	router.GET(baseURL+"/labelNoExplodeArray/:param", wrapper.GetLabelNoExplodeArray)
-	router.GET(baseURL+"/labelNoExplodeObject/:param", wrapper.GetLabelNoExplodeObject)
-	router.GET(baseURL+"/matrixExplodeArray/:id", wrapper.GetMatrixExplodeArray)
-	router.GET(baseURL+"/matrixExplodeObject/:id", wrapper.GetMatrixExplodeObject)
-	router.GET(baseURL+"/matrixNoExplodeArray/:id", wrapper.GetMatrixNoExplodeArray)
-	router.GET(baseURL+"/matrixNoExplodeObject/:id", wrapper.GetMatrixNoExplodeObject)
-	router.GET(baseURL+"/passThrough/:param", wrapper.GetPassThrough)
-	router.GET(baseURL+"/queryDeepObject", wrapper.GetDeepObject)
-	router.GET(baseURL+"/queryForm", wrapper.GetQueryForm)
-	router.GET(baseURL+"/simpleExplodeArray/:param", wrapper.GetSimpleExplodeArray)
-	router.GET(baseURL+"/simpleExplodeObject/:param", wrapper.GetSimpleExplodeObject)
-	router.GET(baseURL+"/simpleNoExplodeArray/:param", wrapper.GetSimpleNoExplodeArray)
-	router.GET(baseURL+"/simpleNoExplodeObject/:param", wrapper.GetSimpleNoExplodeObject)
-	router.GET(baseURL+"/simplePrimitive/:param", wrapper.GetSimplePrimitive)
+	router.GET(opts.BaseURL+"/contentObject/:param", wrapper.GetContentObject)
+	router.GET(opts.BaseURL+"/cookie", wrapper.GetCookie)
+	router.GET(opts.BaseURL+"/header", wrapper.GetHeader)
+	router.GET(opts.BaseURL+"/labelExplodeArray/:param", wrapper.GetLabelExplodeArray)
+	router.GET(opts.BaseURL+"/labelExplodeObject/:param", wrapper.GetLabelExplodeObject)
+	router.GET(opts.BaseURL+"/labelNoExplodeArray/:param", wrapper.GetLabelNoExplodeArray)
+	router.GET(opts.BaseURL+"/labelNoExplodeObject/:param", wrapper.GetLabelNoExplodeObject)
+	router.GET(opts.BaseURL+"/matrixExplodeArray/:id", wrapper.GetMatrixExplodeArray)
+	router.GET(opts.BaseURL+"/matrixExplodeObject/:id", wrapper.GetMatrixExplodeObject)
+	router.GET(opts.BaseURL+"/matrixNoExplodeArray/:id", wrapper.GetMatrixNoExplodeArray)
+	router.GET(opts.BaseURL+"/matrixNoExplodeObject/:id", wrapper.GetMatrixNoExplodeObject)
+	router.GET(opts.BaseURL+"/passThrough/:param", wrapper.GetPassThrough)
+	router.GET(opts.BaseURL+"/queryDeepObject", wrapper.GetDeepObject)
+	router.GET(opts.BaseURL+"/queryForm", wrapper.GetQueryForm)
+	router.GET(opts.BaseURL+"/simpleExplodeArray/:param", wrapper.GetSimpleExplodeArray)
+	router.GET(opts.BaseURL+"/simpleExplodeObject/:param", wrapper.GetSimpleExplodeObject)
+	router.GET(opts.BaseURL+"/simpleNoExplodeArray/:param", wrapper.GetSimpleNoExplodeArray)
+	router.GET(opts.BaseURL+"/simpleNoExplodeObject/:param", wrapper.GetSimpleNoExplodeObject)
+	router.GET(opts.BaseURL+"/simplePrimitive/:param", wrapper.GetSimplePrimitive)
 
 }
 

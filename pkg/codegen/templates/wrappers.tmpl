@@ -1,6 +1,7 @@
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
     Handler ServerInterface
+    Middlewares []echo.MiddlewareFunc
 }
 
 {{range .}}{{$opid := .OperationId}}// {{$opid}} converts echo context to params.
@@ -122,7 +123,15 @@ func (w *ServerInterfaceWrapper) {{.OperationId}} (ctx echo.Context) error {
 
 {{end}}{{/* .RequiresParamObject */}}
     // Invoke the callback with all the unmarshalled arguments
-    err = w.Handler.{{.OperationId}}(ctx{{genParamNames .PathParams}}{{if .RequiresParamObject}}, params{{end}})
+
+    handler := func(ctx echo.Context) error {
+        return w.Handler.{{.OperationId}}(ctx{{genParamNames .PathParams}}{{if .RequiresParamObject}}, params{{end}})
+    }
+    for _, middleware := range w.Middlewares {
+        handler = middleware(handler)
+    }
+
+    err = handler(ctx)
     return err
 }
 {{end}}
