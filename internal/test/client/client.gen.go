@@ -899,25 +899,53 @@ func ParseGetJsonWithTrailingSlashResponse(rsp *http.Response) (*GetJsonWithTrai
 type ServerInterface interface {
 
 	// (POST /with_both_bodies)
-	PostBoth(ctx echo.Context) error
+	PostBoth(ctx PostBothContext) error
 
 	// (GET /with_both_responses)
-	GetBoth(ctx echo.Context) error
+	GetBoth(ctx GetBothContext) error
 
 	// (POST /with_json_body)
-	PostJson(ctx echo.Context) error
+	PostJson(ctx PostJsonContext) error
 
 	// (GET /with_json_response)
-	GetJson(ctx echo.Context) error
+	GetJson(ctx GetJsonContext) error
 
 	// (POST /with_other_body)
-	PostOther(ctx echo.Context) error
+	PostOther(ctx PostOtherContext) error
 
 	// (GET /with_other_response)
-	GetOther(ctx echo.Context) error
+	GetOther(ctx GetOtherContext) error
 
 	// (GET /with_trailing_slash/)
-	GetJsonWithTrailingSlash(ctx echo.Context) error
+	GetJsonWithTrailingSlash(ctx GetJsonWithTrailingSlashContext) error
+}
+
+type PostBothContext struct {
+	echo.Context
+}
+
+type GetBothContext struct {
+	echo.Context
+}
+
+type PostJsonContext struct {
+	echo.Context
+}
+
+type GetJsonContext struct {
+	echo.Context
+}
+
+type PostOtherContext struct {
+	echo.Context
+}
+
+type GetOtherContext struct {
+	echo.Context
+}
+
+type GetJsonWithTrailingSlashContext struct {
+	echo.Context
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -930,7 +958,7 @@ func (w *ServerInterfaceWrapper) PostBoth(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.PostBoth(ctx)
+	err = w.Handler.PostBoth(PostBothContext{ctx})
 	return err
 }
 
@@ -939,7 +967,7 @@ func (w *ServerInterfaceWrapper) GetBoth(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetBoth(ctx)
+	err = w.Handler.GetBoth(GetBothContext{ctx})
 	return err
 }
 
@@ -948,7 +976,7 @@ func (w *ServerInterfaceWrapper) PostJson(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.PostJson(ctx)
+	err = w.Handler.PostJson(PostJsonContext{ctx})
 	return err
 }
 
@@ -959,7 +987,7 @@ func (w *ServerInterfaceWrapper) GetJson(ctx echo.Context) error {
 	ctx.Set(OpenIdScopes, []string{"json.read", "json.admin"})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetJson(ctx)
+	err = w.Handler.GetJson(GetJsonContext{ctx})
 	return err
 }
 
@@ -968,7 +996,7 @@ func (w *ServerInterfaceWrapper) PostOther(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.PostOther(ctx)
+	err = w.Handler.PostOther(PostOtherContext{ctx})
 	return err
 }
 
@@ -977,7 +1005,7 @@ func (w *ServerInterfaceWrapper) GetOther(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetOther(ctx)
+	err = w.Handler.GetOther(GetOtherContext{ctx})
 	return err
 }
 
@@ -988,7 +1016,7 @@ func (w *ServerInterfaceWrapper) GetJsonWithTrailingSlash(ctx echo.Context) erro
 	ctx.Set(OpenIdScopes, []string{"json.read", "json.admin"})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetJsonWithTrailingSlash(ctx)
+	err = w.Handler.GetJsonWithTrailingSlash(GetJsonWithTrailingSlashContext{ctx})
 	return err
 }
 

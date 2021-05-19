@@ -1027,25 +1027,96 @@ func ParseIssue9Response(rsp *http.Response) (*Issue9Response, error) {
 type ServerInterface interface {
 
 	// (GET /ensure-everything-is-referenced)
-	EnsureEverythingIsReferenced(ctx echo.Context) error
+	EnsureEverythingIsReferenced(ctx EnsureEverythingIsReferencedContext) error
 
 	// (GET /issues/127)
-	Issue127(ctx echo.Context) error
+	Issue127(ctx Issue127Context) error
 
 	// (GET /issues/185)
-	Issue185(ctx echo.Context) error
+	Issue185(ctx Issue185Context) error
 
 	// (GET /issues/209/${str})
-	Issue209(ctx echo.Context, str StringInPath) error
+	Issue209(ctx Issue209Context, str StringInPath) error
 
 	// (GET /issues/30/{fallthrough})
-	Issue30(ctx echo.Context, pFallthrough string) error
+	Issue30(ctx Issue30Context, pFallthrough string) error
 
 	// (GET /issues/41/{1param})
-	Issue41(ctx echo.Context, n1param N5StartsWithNumber) error
+	Issue41(ctx Issue41Context, n1param N5StartsWithNumber) error
 
 	// (GET /issues/9)
-	Issue9(ctx echo.Context, params Issue9Params) error
+	Issue9(ctx Issue9Context, params Issue9Params) error
+}
+
+type EnsureEverythingIsReferencedContext struct {
+	echo.Context
+}
+
+func (c *EnsureEverythingIsReferencedContext) JSON200(resp struct {
+	AnyType1 *AnyType1 `json:"anyType1,omitempty"`
+
+	// This should be an interface{}
+	AnyType2         *AnyType2         `json:"anyType2,omitempty"`
+	CustomStringType *CustomStringType `json:"customStringType,omitempty"`
+}) error {
+	err := c.Validate(resp)
+	if err != nil {
+		return err
+	}
+	return c.JSON(200, resp)
+}
+
+type Issue127Context struct {
+	echo.Context
+}
+
+func (c *Issue127Context) JSON200(resp GenericObject) error {
+	err := c.Validate(resp)
+	if err != nil {
+		return err
+	}
+	return c.JSON(200, resp)
+}
+
+func (c *Issue127Context) XML200(resp GenericObject) error {
+	err := c.Validate(resp)
+	if err != nil {
+		return err
+	}
+	return c.XML(200, resp)
+}
+
+func (c *Issue127Context) YAML200(resp GenericObject) error {
+	err := c.Validate(resp)
+	if err != nil {
+		return err
+	}
+	var out []byte
+	out, err = yaml.Marshal(resp)
+	if err != nil {
+		return err
+	}
+	return c.Blob(200, "text/yaml", out)
+}
+
+type Issue185Context struct {
+	echo.Context
+}
+
+type Issue209Context struct {
+	echo.Context
+}
+
+type Issue30Context struct {
+	echo.Context
+}
+
+type Issue41Context struct {
+	echo.Context
+}
+
+type Issue9Context struct {
+	echo.Context
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -1060,7 +1131,7 @@ func (w *ServerInterfaceWrapper) EnsureEverythingIsReferenced(ctx echo.Context) 
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.EnsureEverythingIsReferenced(ctx)
+	err = w.Handler.EnsureEverythingIsReferenced(EnsureEverythingIsReferencedContext{ctx})
 	return err
 }
 
@@ -1071,7 +1142,7 @@ func (w *ServerInterfaceWrapper) Issue127(ctx echo.Context) error {
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue127(ctx)
+	err = w.Handler.Issue127(Issue127Context{ctx})
 	return err
 }
 
@@ -1082,7 +1153,7 @@ func (w *ServerInterfaceWrapper) Issue185(ctx echo.Context) error {
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue185(ctx)
+	err = w.Handler.Issue185(Issue185Context{ctx})
 	return err
 }
 
@@ -1100,7 +1171,7 @@ func (w *ServerInterfaceWrapper) Issue209(ctx echo.Context) error {
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue209(ctx, str)
+	err = w.Handler.Issue209(Issue209Context{ctx}, str)
 	return err
 }
 
@@ -1118,7 +1189,7 @@ func (w *ServerInterfaceWrapper) Issue30(ctx echo.Context) error {
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue30(ctx, pFallthrough)
+	err = w.Handler.Issue30(Issue30Context{ctx}, pFallthrough)
 	return err
 }
 
@@ -1136,7 +1207,7 @@ func (w *ServerInterfaceWrapper) Issue41(ctx echo.Context) error {
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue41(ctx, n1param)
+	err = w.Handler.Issue41(Issue41Context{ctx}, n1param)
 	return err
 }
 
@@ -1156,7 +1227,7 @@ func (w *ServerInterfaceWrapper) Issue9(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue9(ctx, params)
+	err = w.Handler.Issue9(Issue9Context{ctx}, params)
 	return err
 }
 
