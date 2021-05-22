@@ -282,7 +282,8 @@ type ServerInterface interface {
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
-	Handler ServerInterface
+	Handler     ServerInterface
+	Middlewares []echo.MiddlewareFunc
 }
 
 // GetFoo converts echo context to params.
@@ -325,7 +326,15 @@ func (w *ServerInterfaceWrapper) GetFoo(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetFoo(ctx, params)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetFoo(ctx, params)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -344,6 +353,18 @@ type EchoRouter interface {
 	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 }
 
+// RegisterOptions contains options that alter how routes get registered.
+type RegisterOptions struct {
+	// BaseURL is prepended to the registered paths, so that the paths
+	// can be served under a prefix.
+	BaseURL string
+
+	// Middlewares is a slice of middleware functions that get applied
+	// in sequence after the parameters get decoded and additional context
+	// (for instance, scopes) gets set by the ServerInterfaceWrapper.
+	Middlewares []echo.MiddlewareFunc
+}
+
 // RegisterHandlers adds each server route to the EchoRouter.
 func RegisterHandlers(router EchoRouter, si ServerInterface) {
 	RegisterHandlersWithBaseURL(router, si, "")
@@ -352,12 +373,18 @@ func RegisterHandlers(router EchoRouter, si ServerInterface) {
 // Registers handlers, and prepends BaseURL to the paths, so that the paths
 // can be served under a prefix.
 func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
+	RegisterHandlersWithOptions(router, si, RegisterOptions{BaseURL: baseURL})
+}
+
+// Registers handlers using options.
+func RegisterHandlersWithOptions(router EchoRouter, si ServerInterface, opts RegisterOptions) {
 
 	wrapper := ServerInterfaceWrapper{
-		Handler: si,
+		Handler:     si,
+		Middlewares: opts.Middlewares,
 	}
 
-	router.GET(baseURL+"/foo", wrapper.GetFoo)
+	router.GET(opts.BaseURL+"/foo", wrapper.GetFoo)
 
 }
 

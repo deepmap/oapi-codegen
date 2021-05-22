@@ -1050,7 +1050,8 @@ type ServerInterface interface {
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
-	Handler ServerInterface
+	Handler     ServerInterface
+	Middlewares []echo.MiddlewareFunc
 }
 
 // EnsureEverythingIsReferenced converts echo context to params.
@@ -1060,7 +1061,15 @@ func (w *ServerInterfaceWrapper) EnsureEverythingIsReferenced(ctx echo.Context) 
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.EnsureEverythingIsReferenced(ctx)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.EnsureEverythingIsReferenced(ctx)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -1071,7 +1080,15 @@ func (w *ServerInterfaceWrapper) Issue127(ctx echo.Context) error {
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue127(ctx)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.Issue127(ctx)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -1082,7 +1099,15 @@ func (w *ServerInterfaceWrapper) Issue185(ctx echo.Context) error {
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue185(ctx)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.Issue185(ctx)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -1100,7 +1125,15 @@ func (w *ServerInterfaceWrapper) Issue209(ctx echo.Context) error {
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue209(ctx, str)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.Issue209(ctx, str)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -1118,7 +1151,15 @@ func (w *ServerInterfaceWrapper) Issue30(ctx echo.Context) error {
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue30(ctx, pFallthrough)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.Issue30(ctx, pFallthrough)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -1136,7 +1177,15 @@ func (w *ServerInterfaceWrapper) Issue41(ctx echo.Context) error {
 	ctx.Set(Access_tokenScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue41(ctx, n1param)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.Issue41(ctx, n1param)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -1156,7 +1205,15 @@ func (w *ServerInterfaceWrapper) Issue9(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.Issue9(ctx, params)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.Issue9(ctx, params)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -1175,6 +1232,18 @@ type EchoRouter interface {
 	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 }
 
+// RegisterOptions contains options that alter how routes get registered.
+type RegisterOptions struct {
+	// BaseURL is prepended to the registered paths, so that the paths
+	// can be served under a prefix.
+	BaseURL string
+
+	// Middlewares is a slice of middleware functions that get applied
+	// in sequence after the parameters get decoded and additional context
+	// (for instance, scopes) gets set by the ServerInterfaceWrapper.
+	Middlewares []echo.MiddlewareFunc
+}
+
 // RegisterHandlers adds each server route to the EchoRouter.
 func RegisterHandlers(router EchoRouter, si ServerInterface) {
 	RegisterHandlersWithBaseURL(router, si, "")
@@ -1183,18 +1252,24 @@ func RegisterHandlers(router EchoRouter, si ServerInterface) {
 // Registers handlers, and prepends BaseURL to the paths, so that the paths
 // can be served under a prefix.
 func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
+	RegisterHandlersWithOptions(router, si, RegisterOptions{BaseURL: baseURL})
+}
+
+// Registers handlers using options.
+func RegisterHandlersWithOptions(router EchoRouter, si ServerInterface, opts RegisterOptions) {
 
 	wrapper := ServerInterfaceWrapper{
-		Handler: si,
+		Handler:     si,
+		Middlewares: opts.Middlewares,
 	}
 
-	router.GET(baseURL+"/ensure-everything-is-referenced", wrapper.EnsureEverythingIsReferenced)
-	router.GET(baseURL+"/issues/127", wrapper.Issue127)
-	router.GET(baseURL+"/issues/185", wrapper.Issue185)
-	router.GET(baseURL+"/issues/209/$:str", wrapper.Issue209)
-	router.GET(baseURL+"/issues/30/:fallthrough", wrapper.Issue30)
-	router.GET(baseURL+"/issues/41/:1param", wrapper.Issue41)
-	router.GET(baseURL+"/issues/9", wrapper.Issue9)
+	router.GET(opts.BaseURL+"/ensure-everything-is-referenced", wrapper.EnsureEverythingIsReferenced)
+	router.GET(opts.BaseURL+"/issues/127", wrapper.Issue127)
+	router.GET(opts.BaseURL+"/issues/185", wrapper.Issue185)
+	router.GET(opts.BaseURL+"/issues/209/$:str", wrapper.Issue209)
+	router.GET(opts.BaseURL+"/issues/30/:fallthrough", wrapper.Issue30)
+	router.GET(opts.BaseURL+"/issues/41/:1param", wrapper.Issue41)
+	router.GET(opts.BaseURL+"/issues/9", wrapper.Issue9)
 
 }
 

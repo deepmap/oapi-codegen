@@ -36,7 +36,8 @@ type ServerInterface interface {
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
-	Handler ServerInterface
+	Handler     ServerInterface
+	Middlewares []echo.MiddlewareFunc
 }
 
 // FindPets converts echo context to params.
@@ -60,7 +61,15 @@ func (w *ServerInterfaceWrapper) FindPets(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.FindPets(ctx, params)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.FindPets(ctx, params)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -69,7 +78,15 @@ func (w *ServerInterfaceWrapper) AddPet(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.AddPet(ctx)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.AddPet(ctx)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -85,7 +102,15 @@ func (w *ServerInterfaceWrapper) DeletePet(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.DeletePet(ctx, id)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.DeletePet(ctx, id)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -101,7 +126,15 @@ func (w *ServerInterfaceWrapper) FindPetById(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.FindPetById(ctx, id)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.FindPetById(ctx, id)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -120,6 +153,18 @@ type EchoRouter interface {
 	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 }
 
+// RegisterOptions contains options that alter how routes get registered.
+type RegisterOptions struct {
+	// BaseURL is prepended to the registered paths, so that the paths
+	// can be served under a prefix.
+	BaseURL string
+
+	// Middlewares is a slice of middleware functions that get applied
+	// in sequence after the parameters get decoded and additional context
+	// (for instance, scopes) gets set by the ServerInterfaceWrapper.
+	Middlewares []echo.MiddlewareFunc
+}
+
 // RegisterHandlers adds each server route to the EchoRouter.
 func RegisterHandlers(router EchoRouter, si ServerInterface) {
 	RegisterHandlersWithBaseURL(router, si, "")
@@ -128,15 +173,21 @@ func RegisterHandlers(router EchoRouter, si ServerInterface) {
 // Registers handlers, and prepends BaseURL to the paths, so that the paths
 // can be served under a prefix.
 func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
+	RegisterHandlersWithOptions(router, si, RegisterOptions{BaseURL: baseURL})
+}
+
+// Registers handlers using options.
+func RegisterHandlersWithOptions(router EchoRouter, si ServerInterface, opts RegisterOptions) {
 
 	wrapper := ServerInterfaceWrapper{
-		Handler: si,
+		Handler:     si,
+		Middlewares: opts.Middlewares,
 	}
 
-	router.GET(baseURL+"/pets", wrapper.FindPets)
-	router.POST(baseURL+"/pets", wrapper.AddPet)
-	router.DELETE(baseURL+"/pets/:id", wrapper.DeletePet)
-	router.GET(baseURL+"/pets/:id", wrapper.FindPetById)
+	router.GET(opts.BaseURL+"/pets", wrapper.FindPets)
+	router.POST(opts.BaseURL+"/pets", wrapper.AddPet)
+	router.DELETE(opts.BaseURL+"/pets/:id", wrapper.DeletePet)
+	router.GET(opts.BaseURL+"/pets/:id", wrapper.FindPetById)
 
 }
 

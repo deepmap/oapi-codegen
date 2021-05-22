@@ -922,7 +922,8 @@ type ServerInterface interface {
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
-	Handler ServerInterface
+	Handler     ServerInterface
+	Middlewares []echo.MiddlewareFunc
 }
 
 // PostBoth converts echo context to params.
@@ -930,7 +931,15 @@ func (w *ServerInterfaceWrapper) PostBoth(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.PostBoth(ctx)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.PostBoth(ctx)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -939,7 +948,15 @@ func (w *ServerInterfaceWrapper) GetBoth(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetBoth(ctx)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetBoth(ctx)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -948,7 +965,15 @@ func (w *ServerInterfaceWrapper) PostJson(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.PostJson(ctx)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.PostJson(ctx)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -959,7 +984,15 @@ func (w *ServerInterfaceWrapper) GetJson(ctx echo.Context) error {
 	ctx.Set(OpenIdScopes, []string{"json.read", "json.admin"})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetJson(ctx)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetJson(ctx)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -968,7 +1001,15 @@ func (w *ServerInterfaceWrapper) PostOther(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.PostOther(ctx)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.PostOther(ctx)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -977,7 +1018,15 @@ func (w *ServerInterfaceWrapper) GetOther(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetOther(ctx)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetOther(ctx)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -988,7 +1037,15 @@ func (w *ServerInterfaceWrapper) GetJsonWithTrailingSlash(ctx echo.Context) erro
 	ctx.Set(OpenIdScopes, []string{"json.read", "json.admin"})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetJsonWithTrailingSlash(ctx)
+
+	handler := func(ctx echo.Context) error {
+		return w.Handler.GetJsonWithTrailingSlash(ctx)
+	}
+	for _, middleware := range w.Middlewares {
+		handler = middleware(handler)
+	}
+
+	err = handler(ctx)
 	return err
 }
 
@@ -1007,6 +1064,18 @@ type EchoRouter interface {
 	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 }
 
+// RegisterOptions contains options that alter how routes get registered.
+type RegisterOptions struct {
+	// BaseURL is prepended to the registered paths, so that the paths
+	// can be served under a prefix.
+	BaseURL string
+
+	// Middlewares is a slice of middleware functions that get applied
+	// in sequence after the parameters get decoded and additional context
+	// (for instance, scopes) gets set by the ServerInterfaceWrapper.
+	Middlewares []echo.MiddlewareFunc
+}
+
 // RegisterHandlers adds each server route to the EchoRouter.
 func RegisterHandlers(router EchoRouter, si ServerInterface) {
 	RegisterHandlersWithBaseURL(router, si, "")
@@ -1015,18 +1084,24 @@ func RegisterHandlers(router EchoRouter, si ServerInterface) {
 // Registers handlers, and prepends BaseURL to the paths, so that the paths
 // can be served under a prefix.
 func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
+	RegisterHandlersWithOptions(router, si, RegisterOptions{BaseURL: baseURL})
+}
+
+// Registers handlers using options.
+func RegisterHandlersWithOptions(router EchoRouter, si ServerInterface, opts RegisterOptions) {
 
 	wrapper := ServerInterfaceWrapper{
-		Handler: si,
+		Handler:     si,
+		Middlewares: opts.Middlewares,
 	}
 
-	router.POST(baseURL+"/with_both_bodies", wrapper.PostBoth)
-	router.GET(baseURL+"/with_both_responses", wrapper.GetBoth)
-	router.POST(baseURL+"/with_json_body", wrapper.PostJson)
-	router.GET(baseURL+"/with_json_response", wrapper.GetJson)
-	router.POST(baseURL+"/with_other_body", wrapper.PostOther)
-	router.GET(baseURL+"/with_other_response", wrapper.GetOther)
-	router.GET(baseURL+"/with_trailing_slash/", wrapper.GetJsonWithTrailingSlash)
+	router.POST(opts.BaseURL+"/with_both_bodies", wrapper.PostBoth)
+	router.GET(opts.BaseURL+"/with_both_responses", wrapper.GetBoth)
+	router.POST(opts.BaseURL+"/with_json_body", wrapper.PostJson)
+	router.GET(opts.BaseURL+"/with_json_response", wrapper.GetJson)
+	router.POST(opts.BaseURL+"/with_other_body", wrapper.PostOther)
+	router.GET(opts.BaseURL+"/with_other_response", wrapper.GetOther)
+	router.GET(opts.BaseURL+"/with_trailing_slash/", wrapper.GetJsonWithTrailingSlash)
 
 }
 

@@ -871,6 +871,18 @@ type EchoRouter interface {
 	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 }
 
+// RegisterOptions contains options that alter how routes get registered.
+type RegisterOptions struct {
+	// BaseURL is prepended to the registered paths, so that the paths
+	// can be served under a prefix.
+	BaseURL string
+
+	// Middlewares is a slice of middleware functions that get applied
+	// in sequence after the parameters get decoded and additional context
+	// (for instance, scopes) gets set by the ServerInterfaceWrapper.
+	Middlewares []echo.MiddlewareFunc
+}
+
 // RegisterHandlers adds each server route to the EchoRouter.
 func RegisterHandlers(router EchoRouter, si ServerInterface) {
     RegisterHandlersWithBaseURL(router, si, "")
@@ -879,12 +891,18 @@ func RegisterHandlers(router EchoRouter, si ServerInterface) {
 // Registers handlers, and prepends BaseURL to the paths, so that the paths
 // can be served under a prefix.
 func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
+	RegisterHandlersWithOptions(router, si, RegisterOptions{BaseURL: baseURL})
+}
+
+// Registers handlers using options.
+func RegisterHandlersWithOptions(router EchoRouter, si ServerInterface, opts RegisterOptions) {
 {{if .}}
-    wrapper := ServerInterfaceWrapper{
-        Handler: si,
-    }
+	wrapper := ServerInterfaceWrapper{
+		Handler: si,
+		Middlewares: opts.Middlewares,
+	}
 {{end}}
-{{range .}}router.{{.Method}}(baseURL + "{{.Path | swaggerUriToEchoUri}}", wrapper.{{.OperationId}})
+{{range .}}router.{{.Method}}(opts.BaseURL + "{{.Path | swaggerUriToEchoUri}}", wrapper.{{.OperationId}})
 {{end}}
 }
 `,
@@ -913,6 +931,7 @@ type {{.TypeName}} {{if and (opts.AliasTypes) (.CanAlias)}}={{end}} {{.Schema.Ty
 	"wrappers.tmpl": `// ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
     Handler ServerInterface
+    Middlewares []echo.MiddlewareFunc
 }
 
 {{range .}}{{$opid := .OperationId}}// {{$opid}} converts echo context to params.
@@ -1034,7 +1053,15 @@ func (w *ServerInterfaceWrapper) {{.OperationId}} (ctx echo.Context) error {
 
 {{end}}{{/* .RequiresParamObject */}}
     // Invoke the callback with all the unmarshalled arguments
-    err = w.Handler.{{.OperationId}}(ctx{{genParamNames .PathParams}}{{if .RequiresParamObject}}, params{{end}})
+
+    handler := func(ctx echo.Context) error {
+        return w.Handler.{{.OperationId}}(ctx{{genParamNames .PathParams}}{{if .RequiresParamObject}}, params{{end}})
+    }
+    for _, middleware := range w.Middlewares {
+        handler = middleware(handler)
+    }
+
+    err = handler(ctx)
     return err
 }
 {{end}}
