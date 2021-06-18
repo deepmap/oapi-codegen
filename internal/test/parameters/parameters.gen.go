@@ -2108,6 +2108,7 @@ func ParseGetContentObjectResponse(rsp *http.Response) (*GetContentObjectRespons
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2127,6 +2128,7 @@ func ParseGetCookieResponse(rsp *http.Response) (*GetCookieResponse, error) {
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2146,6 +2148,7 @@ func ParseGetHeaderResponse(rsp *http.Response) (*GetHeaderResponse, error) {
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2165,6 +2168,7 @@ func ParseGetLabelExplodeArrayResponse(rsp *http.Response) (*GetLabelExplodeArra
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2184,6 +2188,7 @@ func ParseGetLabelExplodeObjectResponse(rsp *http.Response) (*GetLabelExplodeObj
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2203,6 +2208,7 @@ func ParseGetLabelNoExplodeArrayResponse(rsp *http.Response) (*GetLabelNoExplode
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2222,6 +2228,7 @@ func ParseGetLabelNoExplodeObjectResponse(rsp *http.Response) (*GetLabelNoExplod
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2241,6 +2248,7 @@ func ParseGetMatrixExplodeArrayResponse(rsp *http.Response) (*GetMatrixExplodeAr
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2260,6 +2268,7 @@ func ParseGetMatrixExplodeObjectResponse(rsp *http.Response) (*GetMatrixExplodeO
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2279,6 +2288,7 @@ func ParseGetMatrixNoExplodeArrayResponse(rsp *http.Response) (*GetMatrixNoExplo
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2298,6 +2308,7 @@ func ParseGetMatrixNoExplodeObjectResponse(rsp *http.Response) (*GetMatrixNoExpl
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2317,6 +2328,7 @@ func ParseGetPassThroughResponse(rsp *http.Response) (*GetPassThroughResponse, e
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2336,6 +2348,7 @@ func ParseGetDeepObjectResponse(rsp *http.Response) (*GetDeepObjectResponse, err
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2355,6 +2368,7 @@ func ParseGetQueryFormResponse(rsp *http.Response) (*GetQueryFormResponse, error
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2374,6 +2388,7 @@ func ParseGetSimpleExplodeArrayResponse(rsp *http.Response) (*GetSimpleExplodeAr
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2393,6 +2408,7 @@ func ParseGetSimpleExplodeObjectResponse(rsp *http.Response) (*GetSimpleExplodeO
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2412,6 +2428,7 @@ func ParseGetSimpleNoExplodeArrayResponse(rsp *http.Response) (*GetSimpleNoExplo
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2431,6 +2448,7 @@ func ParseGetSimpleNoExplodeObjectResponse(rsp *http.Response) (*GetSimpleNoExpl
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -2450,6 +2468,7 @@ func ParseGetSimplePrimitiveResponse(rsp *http.Response) (*GetSimplePrimitiveRes
 	}
 
 	switch {
+
 	}
 
 	return response, nil

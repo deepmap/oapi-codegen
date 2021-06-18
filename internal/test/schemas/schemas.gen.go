@@ -942,6 +942,7 @@ func ParseIssue185Response(rsp *http.Response) (*Issue185Response, error) {
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -961,6 +962,7 @@ func ParseIssue209Response(rsp *http.Response) (*Issue209Response, error) {
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -980,6 +982,7 @@ func ParseIssue30Response(rsp *http.Response) (*Issue30Response, error) {
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -999,6 +1002,7 @@ func ParseIssue41Response(rsp *http.Response) (*Issue41Response, error) {
 	}
 
 	switch {
+
 	}
 
 	return response, nil
@@ -1018,6 +1022,7 @@ func ParseIssue9Response(rsp *http.Response) (*Issue9Response, error) {
 	}
 
 	switch {
+
 	}
 
 	return response, nil
