@@ -427,6 +427,8 @@ func GenFieldsFromProperties(props []Property) []string {
 	var fields []string
 	for _, p := range props {
 		field := ""
+		fieldTags := make(map[string]string)
+
 		// Add a comment to a field in case we have one, otherwise skip.
 		if p.Description != "" {
 			// Separate the comment from a previous-defined, unrelated field.
@@ -435,21 +437,26 @@ func GenFieldsFromProperties(props []Property) []string {
 		}
 		field += fmt.Sprintf("    %s %s", p.GoFieldName(), p.GoTypeDef())
 
+		// Formating go tags
+		fieldTags["json"] = p.JsonFieldName
+
 		// Support x-omitempty
-		omitEmpty := true
 		if _, ok := p.ExtensionProps.Extensions[extPropOmitEmpty]; ok {
-			if extOmitEmpty, err := extParseOmitEmpty(p.ExtensionProps.Extensions[extPropOmitEmpty]); err == nil {
-				omitEmpty = extOmitEmpty
+			if extOmitEmpty, err := extParseOmitEmpty(p.ExtensionProps.Extensions[extPropOmitEmpty]); err == nil && extOmitEmpty {
+				fieldTags["json"] += ",omitempty"
+			}
+		} else if !p.Required && !p.Nullable { // not required or not nullable needs omitempty
+			fieldTags["json"] += ",omitempty"
+		}
+
+		// Support x-go-json-ignore
+		if _, ok := p.ExtensionProps.Extensions[extPropGoJsonIgnore]; ok {
+			if goJsonIgnore, err := extParseGoJsonIgnore(p.ExtensionProps.Extensions[extPropGoJsonIgnore]); err == nil && goJsonIgnore {
+				fieldTags["json"] = "-"
 			}
 		}
 
-		fieldTags := make(map[string]string)
-
-		if p.Required || p.Nullable || !omitEmpty {
-			fieldTags["json"] = p.JsonFieldName
-		} else {
-			fieldTags["json"] = p.JsonFieldName + ",omitempty"
-		}
+		// Support x-oapi-codegen-extra-tags
 		if extension, ok := p.ExtensionProps.Extensions[extPropExtraTags]; ok {
 			if tags, err := extExtraTags(extension); err == nil {
 				keys := SortedStringKeys(tags)
@@ -465,6 +472,7 @@ func GenFieldsFromProperties(props []Property) []string {
 			tags[i] = fmt.Sprintf(`%s:"%s"`, k, fieldTags[k])
 		}
 		field += "`" + strings.Join(tags, " ") + "`"
+
 		fields = append(fields, field)
 	}
 	return fields
