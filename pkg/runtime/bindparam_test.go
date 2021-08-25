@@ -298,6 +298,7 @@ func TestBindQueryParameter(t *testing.T) {
 			FirstName *string     `json:"firstName"`
 			LastName  *string     `json:"lastName"`
 			Role      string      `json:"role"`
+			Roles     []string    `json:"roles"`
 			Birthday  *types.Date `json:"birthday"`
 			Married   *MockBinder `json:"married"`
 		}
@@ -306,6 +307,7 @@ func TestBindQueryParameter(t *testing.T) {
 		expectedDeepObject := &ID{
 			FirstName: &expectedName,
 			Role:      "admin",
+			Roles:     []string{"admin", "user"},
 			Birthday:  &types.Date{Time: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
 			Married:   &MockBinder{time.Date(2020, 2, 2, 0, 0, 0, 0, time.UTC)},
 		}
@@ -315,6 +317,8 @@ func TestBindQueryParameter(t *testing.T) {
 		queryParams := url.Values{
 			"id[firstName]": {"Alex"},
 			"id[role]":      {"admin"},
+			"id[roles][0]":  {"admin"},
+			"id[roles][1]":  {"user"},
 			"foo":           {"bar"},
 			"id[birthday]":  {"2020-01-01"},
 			"id[married]":   {"2020-02-02"},

@@ -43,10 +43,10 @@ type GetCookieParams struct {
 	Ep *int32 `json:"ep,omitempty"`
 
 	// exploded array
-	Ea *[]int32 `json:"ea,omitempty"`
+	Ea []int32 `json:"ea,omitempty"`
 
 	// array
-	A *[]int32 `json:"a,omitempty"`
+	A []int32 `json:"a,omitempty"`
 
 	// exploded object
 	Eo *Object `json:"eo,omitempty"`
@@ -70,10 +70,10 @@ type GetHeaderParams struct {
 	XPrimitiveExploded *int32 `json:"X-Primitive-Exploded,omitempty"`
 
 	// exploded array
-	XArrayExploded *[]int32 `json:"X-Array-Exploded,omitempty"`
+	XArrayExploded []int32 `json:"X-Array-Exploded,omitempty"`
 
 	// array
-	XArray *[]int32 `json:"X-Array,omitempty"`
+	XArray []int32 `json:"X-Array,omitempty"`
 
 	// exploded object
 	XObjectExploded *Object `json:"X-Object-Exploded,omitempty"`
@@ -97,10 +97,10 @@ type GetDeepObjectParams struct {
 // GetQueryFormParams defines parameters for GetQueryForm.
 type GetQueryFormParams struct {
 	// exploded array
-	Ea *[]int32 `json:"ea,omitempty"`
+	Ea []int32 `json:"ea,omitempty"`
 
 	// array
-	A *[]int32 `json:"a,omitempty"`
+	A []int32 `json:"a,omitempty"`
 
 	// exploded object
 	Eo *Object `json:"eo,omitempty"`
@@ -591,7 +591,7 @@ func NewGetCookieRequest(server string, params *GetCookieParams) (*http.Request,
 	if params.Ea != nil {
 		var cookieParam2 string
 
-		cookieParam2, err = runtime.StyleParamWithLocation("simple", true, "ea", runtime.ParamLocationCookie, *params.Ea)
+		cookieParam2, err = runtime.StyleParamWithLocation("simple", true, "ea", runtime.ParamLocationCookie, params.Ea)
 		if err != nil {
 			return nil, err
 		}
@@ -606,7 +606,7 @@ func NewGetCookieRequest(server string, params *GetCookieParams) (*http.Request,
 	if params.A != nil {
 		var cookieParam3 string
 
-		cookieParam3, err = runtime.StyleParamWithLocation("simple", false, "a", runtime.ParamLocationCookie, *params.A)
+		cookieParam3, err = runtime.StyleParamWithLocation("simple", false, "a", runtime.ParamLocationCookie, params.A)
 		if err != nil {
 			return nil, err
 		}
@@ -732,7 +732,7 @@ func NewGetHeaderRequest(server string, params *GetHeaderParams) (*http.Request,
 	if params.XArrayExploded != nil {
 		var headerParam2 string
 
-		headerParam2, err = runtime.StyleParamWithLocation("simple", true, "X-Array-Exploded", runtime.ParamLocationHeader, *params.XArrayExploded)
+		headerParam2, err = runtime.StyleParamWithLocation("simple", true, "X-Array-Exploded", runtime.ParamLocationHeader, params.XArrayExploded)
 		if err != nil {
 			return nil, err
 		}
@@ -743,7 +743,7 @@ func NewGetHeaderRequest(server string, params *GetHeaderParams) (*http.Request,
 	if params.XArray != nil {
 		var headerParam3 string
 
-		headerParam3, err = runtime.StyleParamWithLocation("simple", false, "X-Array", runtime.ParamLocationHeader, *params.XArray)
+		headerParam3, err = runtime.StyleParamWithLocation("simple", false, "X-Array", runtime.ParamLocationHeader, params.XArray)
 		if err != nil {
 			return nil, err
 		}
@@ -1169,7 +1169,7 @@ func NewGetQueryFormRequest(server string, params *GetQueryFormParams) (*http.Re
 
 	if params.Ea != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "ea", runtime.ParamLocationQuery, *params.Ea); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "ea", runtime.ParamLocationQuery, params.Ea); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -1185,7 +1185,7 @@ func NewGetQueryFormRequest(server string, params *GetQueryFormParams) (*http.Re
 
 	if params.A != nil {
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "a", runtime.ParamLocationQuery, *params.A); err != nil {
+		if queryFrag, err := runtime.StyleParamWithLocation("form", false, "a", runtime.ParamLocationQuery, params.A); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -2661,7 +2661,7 @@ func (w *ServerInterfaceWrapper) GetCookie(ctx echo.Context) error {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter ea: %s", err))
 		}
-		params.Ea = &value
+		params.Ea = value
 
 	}
 
@@ -2672,7 +2672,7 @@ func (w *ServerInterfaceWrapper) GetCookie(ctx echo.Context) error {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter a: %s", err))
 		}
-		params.A = &value
+		params.A = value
 
 	}
 
@@ -2781,7 +2781,7 @@ func (w *ServerInterfaceWrapper) GetHeader(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Array-Exploded: %s", err))
 		}
 
-		params.XArrayExploded = &XArrayExploded
+		params.XArrayExploded = XArrayExploded
 	}
 	// ------------- Optional header parameter "X-Array" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Array")]; found {
@@ -2796,7 +2796,7 @@ func (w *ServerInterfaceWrapper) GetHeader(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Array: %s", err))
 		}
 
-		params.XArray = &XArray
+		params.XArray = XArray
 	}
 	// ------------- Optional header parameter "X-Object-Exploded" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Object-Exploded")]; found {
