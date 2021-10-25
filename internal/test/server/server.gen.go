@@ -141,6 +141,12 @@ type ServerInterface interface {
 	// Getter with referenced parameter and referenced response
 	// (GET /get-with-references/{global_argument}/{argument})
 	GetWithReferences(w http.ResponseWriter, r *http.Request, globalArgument int64, argument Argument)
+
+	// (GET /get-with-tagged-middleware)
+	GetWithTaggedMiddleware(w http.ResponseWriter, r *http.Request)
+
+	// (POST /get-with-tagged-middleware)
+	PostWithTaggedMiddleware(w http.ResponseWriter, r *http.Request)
 	// Get an object by ID
 	// (GET /get-with-type/{content_type})
 	GetWithContentType(w http.ResponseWriter, r *http.Request, contentType GetWithContentTypeParamsContentType)
@@ -166,6 +172,7 @@ type ServerInterface interface {
 type ServerInterfaceWrapper struct {
 	Handler            ServerInterface
 	HandlerMiddlewares []MiddlewareFunc
+	TaggedMiddlewares  map[string]MiddlewareFunc
 	ErrorHandlerFunc   func(w http.ResponseWriter, r *http.Request, err error)
 }
 
@@ -304,6 +311,53 @@ func (siw *ServerInterfaceWrapper) GetWithReferences(w http.ResponseWriter, r *h
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// GetWithTaggedMiddleware operation middleware
+func (siw *ServerInterfaceWrapper) GetWithTaggedMiddleware(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetWithTaggedMiddleware(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	// Operation specific middleware
+	if siw.TaggedMiddlewares != nil {
+		if middleware, ok := siw.TaggedMiddlewares["pathMiddleware"]; ok {
+			handler = middleware(handler)
+		}
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// PostWithTaggedMiddleware operation middleware
+func (siw *ServerInterfaceWrapper) PostWithTaggedMiddleware(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostWithTaggedMiddleware(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	// Operation specific middleware
+	if siw.TaggedMiddlewares != nil {
+		if middleware, ok := siw.TaggedMiddlewares["pathMiddleware"]; ok {
+			handler = middleware(handler)
+		}
+		if middleware, ok := siw.TaggedMiddlewares["operationMiddleware"]; ok {
+			handler = middleware(handler)
+		}
 	}
 
 	handler(w, r.WithContext(ctx))
@@ -487,10 +541,11 @@ func Handler(si ServerInterface) http.Handler {
 }
 
 type ChiServerOptions struct {
-	BaseURL          string
-	BaseRouter       chi.Router
-	Middlewares      []MiddlewareFunc
-	ErrorHandlerFunc func(w http.ResponseWriter, r *http.Request, err error)
+	BaseURL           string
+	BaseRouter        chi.Router
+	Middlewares       []MiddlewareFunc
+	TaggedMiddlewares map[string]MiddlewareFunc
+	ErrorHandlerFunc  func(w http.ResponseWriter, r *http.Request, err error)
 }
 
 // HandlerFromMux creates http.Handler with routing matching OpenAPI spec based on the provided mux.
@@ -514,47 +569,37 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	if r == nil {
 		r = chi.NewRouter()
 	}
+
 	if options.ErrorHandlerFunc == nil {
 		options.ErrorHandlerFunc = func(w http.ResponseWriter, r *http.Request, err error) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	}
+
+	if options.BaseURL == "" {
+		options.BaseURL = "/"
+	}
+
 	wrapper := ServerInterfaceWrapper{
 		Handler:            si,
 		HandlerMiddlewares: options.Middlewares,
+		TaggedMiddlewares:  options.TaggedMiddlewares,
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/every-type-optional", wrapper.GetEveryTypeOptional)
+	r.Route(options.BaseURL, func(r chi.Router) {
+		r.Get("/every-type-optional", wrapper.GetEveryTypeOptional)
+		r.Get("/get-simple", wrapper.GetSimple)
+		r.Get("/get-with-args", wrapper.GetWithArgs)
+		r.Get("/get-with-references/{global_argument}/{argument}", wrapper.GetWithReferences)
+		r.Get("/get-with-tagged-middleware", wrapper.GetWithTaggedMiddleware)
+		r.Post("/get-with-tagged-middleware", wrapper.PostWithTaggedMiddleware)
+		r.Get("/get-with-type/{content_type}", wrapper.GetWithContentType)
+		r.Get("/reserved-keyword", wrapper.GetReservedKeyword)
+		r.Post("/resource/{argument}", wrapper.CreateResource)
+		r.Post("/resource2/{inline_argument}", wrapper.CreateResource2)
+		r.Put("/resource3/{fallthrough}", wrapper.UpdateResource3)
+		r.Get("/response-with-reference", wrapper.GetResponseWithReference)
 	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/get-simple", wrapper.GetSimple)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/get-with-args", wrapper.GetWithArgs)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/get-with-references/{global_argument}/{argument}", wrapper.GetWithReferences)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/get-with-type/{content_type}", wrapper.GetWithContentType)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/reserved-keyword", wrapper.GetReservedKeyword)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/resource/{argument}", wrapper.CreateResource)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/resource2/{inline_argument}", wrapper.CreateResource2)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/resource3/{fallthrough}", wrapper.UpdateResource3)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/response-with-reference", wrapper.GetResponseWithReference)
-	})
-
 	return r
 }

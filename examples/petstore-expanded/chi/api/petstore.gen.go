@@ -80,6 +80,7 @@ type ServerInterface interface {
 type ServerInterfaceWrapper struct {
 	Handler            ServerInterface
 	HandlerMiddlewares []MiddlewareFunc
+	TaggedMiddlewares  map[string]MiddlewareFunc
 	ErrorHandlerFunc   func(w http.ResponseWriter, r *http.Request, err error)
 }
 
@@ -223,10 +224,11 @@ func Handler(si ServerInterface) http.Handler {
 }
 
 type ChiServerOptions struct {
-	BaseURL          string
-	BaseRouter       chi.Router
-	Middlewares      []MiddlewareFunc
-	ErrorHandlerFunc func(w http.ResponseWriter, r *http.Request, err error)
+	BaseURL           string
+	BaseRouter        chi.Router
+	Middlewares       []MiddlewareFunc
+	TaggedMiddlewares map[string]MiddlewareFunc
+	ErrorHandlerFunc  func(w http.ResponseWriter, r *http.Request, err error)
 }
 
 // HandlerFromMux creates http.Handler with routing matching OpenAPI spec based on the provided mux.
@@ -250,30 +252,30 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	if r == nil {
 		r = chi.NewRouter()
 	}
+
 	if options.ErrorHandlerFunc == nil {
 		options.ErrorHandlerFunc = func(w http.ResponseWriter, r *http.Request, err error) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	}
+
+	if options.BaseURL == "" {
+		options.BaseURL = "/"
+	}
+
 	wrapper := ServerInterfaceWrapper{
 		Handler:            si,
 		HandlerMiddlewares: options.Middlewares,
+		TaggedMiddlewares:  options.TaggedMiddlewares,
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/pets", wrapper.FindPets)
+	r.Route(options.BaseURL, func(r chi.Router) {
+		r.Get("/pets", wrapper.FindPets)
+		r.Post("/pets", wrapper.AddPet)
+		r.Delete("/pets/{id}", wrapper.DeletePet)
+		r.Get("/pets/{id}", wrapper.FindPetByID)
 	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/pets", wrapper.AddPet)
-	})
-	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/pets/{id}", wrapper.DeletePet)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/pets/{id}", wrapper.FindPetByID)
-	})
-
 	return r
 }
 

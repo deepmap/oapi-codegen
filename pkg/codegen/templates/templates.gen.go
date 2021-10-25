@@ -82,6 +82,7 @@ type ChiServerOptions struct {
     BaseURL string
     BaseRouter chi.Router
     Middlewares []MiddlewareFunc
+	TaggedMiddlewares map[string]MiddlewareFunc
     ErrorHandlerFunc   func(w http.ResponseWriter, r *http.Request, err error)
 }
 
@@ -106,21 +107,28 @@ r := options.BaseRouter
 if r == nil {
 r = chi.NewRouter()
 }
+
 if options.ErrorHandlerFunc == nil {
     options.ErrorHandlerFunc = func(w http.ResponseWriter, r *http.Request, err error) {
         http.Error(w, err.Error(), http.StatusBadRequest)
     }
 }
+
+if options.BaseURL == "" {
+options.BaseURL = "/"
+}
+
 {{if .}}wrapper := ServerInterfaceWrapper{
 Handler: si,
 HandlerMiddlewares: options.Middlewares,
+TaggedMiddlewares: options.TaggedMiddlewares,
 ErrorHandlerFunc: options.ErrorHandlerFunc,
 }
 {{end}}
-{{range .}}r.Group(func(r chi.Router) {
-r.{{.Method | lower | title }}(options.BaseURL+"{{.Path | swaggerUriToChiUri}}", wrapper.{{.OperationId}})
-})
-{{end}}
+r.Route(options.BaseURL, func(r chi.Router) {
+{{range . -}}
+r.{{.Method | lower | title }}("{{.Path | swaggerUriToChiUri}}", wrapper.{{.OperationId}})
+{{end}}})
 return r
 }
 `,
@@ -136,6 +144,7 @@ type ServerInterface interface {
 type ServerInterfaceWrapper struct {
     Handler ServerInterface
     HandlerMiddlewares []MiddlewareFunc
+	TaggedMiddlewares map[string]MiddlewareFunc
     ErrorHandlerFunc func(w http.ResponseWriter, r *http.Request, err error)
 }
 
@@ -315,11 +324,22 @@ func (siw *ServerInterfaceWrapper) {{$opid}}(w http.ResponseWriter, r *http.Requ
 
   var handler = func(w http.ResponseWriter, r *http.Request) {
     siw.Handler.{{.OperationId}}(w, r{{genParamNames .PathParams}}{{if .RequiresParamObject}}, params{{end}})
-}
+  }
 
   for _, middleware := range siw.HandlerMiddlewares {
     handler = middleware(handler)
   }
+
+  {{ with .Middlewares -}}
+  // Operation specific middleware
+  if siw.TaggedMiddlewares != nil {
+	  {{- range . }}
+		  if middleware, ok := siw.TaggedMiddlewares[{{printf "%q" .}}]; ok {
+		  handler = middleware(handler)
+		}
+	  {{- end }}
+  }
+  {{- end }}
 
   handler(w, r.WithContext(ctx))
 }
