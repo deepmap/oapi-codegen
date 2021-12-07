@@ -15,47 +15,53 @@ import (
 
 // EveryTypeOptional defines model for EveryTypeOptional.
 type EveryTypeOptional struct {
-	ArrayInlineField     *[]int              `json:"array_inline_field,omitempty"`
-	ArrayReferencedField *[]SomeObject       `json:"array_referenced_field,omitempty"`
-	BoolField            *bool               `json:"bool_field,omitempty"`
-	ByteField            *[]byte             `json:"byte_field,omitempty"`
-	DateField            *openapi_types.Date `json:"date_field,omitempty"`
-	DateTimeField        *time.Time          `json:"date_time_field,omitempty"`
-	DoubleField          *float64            `json:"double_field,omitempty"`
-	FloatField           *float32            `json:"float_field,omitempty"`
-	InlineObjectField    *struct {
-		Name   string `json:"name"`
-		Number int    `json:"number"`
-	} `json:"inline_object_field,omitempty"`
-	Int32Field      *int32      `json:"int32_field,omitempty"`
-	Int64Field      *int64      `json:"int64_field,omitempty"`
-	IntField        *int        `json:"int_field,omitempty"`
-	NumberField     *float32    `json:"number_field,omitempty"`
-	ReferencedField *SomeObject `json:"referenced_field,omitempty"`
-	StringField     *string     `json:"string_field,omitempty"`
+	ArrayInlineField     *[]int                              `json:"array_inline_field,omitempty"`
+	ArrayReferencedField *[]SomeObject                       `json:"array_referenced_field,omitempty"`
+	BoolField            *bool                               `json:"bool_field,omitempty"`
+	ByteField            *[]byte                             `json:"byte_field,omitempty"`
+	DateField            *openapi_types.Date                 `json:"date_field,omitempty"`
+	DateTimeField        *time.Time                          `json:"date_time_field,omitempty"`
+	DoubleField          *float64                            `json:"double_field,omitempty"`
+	FloatField           *float32                            `json:"float_field,omitempty"`
+	InlineObjectField    *EveryTypeOptionalInlineObjectField `json:"inline_object_field,omitempty"`
+	Int32Field           *int32                              `json:"int32_field,omitempty"`
+	Int64Field           *int64                              `json:"int64_field,omitempty"`
+	IntField             *int                                `json:"int_field,omitempty"`
+	NumberField          *float32                            `json:"number_field,omitempty"`
+	ReferencedField      *SomeObject                         `json:"referenced_field,omitempty"`
+	StringField          *string                             `json:"string_field,omitempty"`
+}
+
+// EveryTypeOptionalInlineObjectField defines model for EveryTypeOptionalInlineObjectField.
+type EveryTypeOptionalInlineObjectField struct {
+	Name   string `json:"name"`
+	Number int    `json:"number"`
 }
 
 // EveryTypeRequired defines model for EveryTypeRequired.
 type EveryTypeRequired struct {
-	ArrayInlineField     []int                `json:"array_inline_field"`
-	ArrayReferencedField []SomeObject         `json:"array_referenced_field"`
-	BoolField            bool                 `json:"bool_field"`
-	ByteField            []byte               `json:"byte_field"`
-	DateField            openapi_types.Date   `json:"date_field"`
-	DateTimeField        time.Time            `json:"date_time_field"`
-	DoubleField          float64              `json:"double_field"`
-	EmailField           *openapi_types.Email `json:"email_field,omitempty"`
-	FloatField           float32              `json:"float_field"`
-	InlineObjectField    struct {
-		Name   string `json:"name"`
-		Number int    `json:"number"`
-	} `json:"inline_object_field"`
-	Int32Field      int32      `json:"int32_field"`
-	Int64Field      int64      `json:"int64_field"`
-	IntField        int        `json:"int_field"`
-	NumberField     float32    `json:"number_field"`
-	ReferencedField SomeObject `json:"referenced_field"`
-	StringField     string     `json:"string_field"`
+	ArrayInlineField     []int                              `json:"array_inline_field"`
+	ArrayReferencedField []SomeObject                       `json:"array_referenced_field"`
+	BoolField            bool                               `json:"bool_field"`
+	ByteField            []byte                             `json:"byte_field"`
+	DateField            openapi_types.Date                 `json:"date_field"`
+	DateTimeField        time.Time                          `json:"date_time_field"`
+	DoubleField          float64                            `json:"double_field"`
+	EmailField           *openapi_types.Email               `json:"email_field,omitempty"`
+	FloatField           float32                            `json:"float_field"`
+	InlineObjectField    EveryTypeRequiredInlineObjectField `json:"inline_object_field"`
+	Int32Field           int32                              `json:"int32_field"`
+	Int64Field           int64                              `json:"int64_field"`
+	IntField             int                                `json:"int_field"`
+	NumberField          float32                            `json:"number_field"`
+	ReferencedField      SomeObject                         `json:"referenced_field"`
+	StringField          string                             `json:"string_field"`
+}
+
+// EveryTypeRequiredInlineObjectField defines model for EveryTypeRequiredInlineObjectField.
+type EveryTypeRequiredInlineObjectField struct {
+	Name   string `json:"name"`
+	Number int    `json:"number"`
 }
 
 // ReservedKeyword defines model for ReservedKeyword.
@@ -96,9 +102,6 @@ type GetWithArgsParams struct {
 	// An optional query argument
 	HeaderArgument *int32 `json:"header_argument,omitempty"`
 }
-
-// GetWithContentTypeParamsContentType defines parameters for GetWithContentType.
-type GetWithContentTypeParamsContentType string
 
 // CreateResourceJSONBody defines parameters for CreateResource.
 type CreateResourceJSONBody EveryTypeRequired
@@ -143,7 +146,7 @@ type ServerInterface interface {
 	GetWithReferences(w http.ResponseWriter, r *http.Request, globalArgument int64, argument Argument)
 	// Get an object by ID
 	// (GET /get-with-type/{content_type})
-	GetWithContentType(w http.ResponseWriter, r *http.Request, contentType GetWithContentTypeParamsContentType)
+	GetWithContentType(w http.ResponseWriter, r *http.Request, contentType string)
 	// get with reserved keyword
 	// (GET /reserved-keyword)
 	GetReservedKeyword(w http.ResponseWriter, r *http.Request)
@@ -309,7 +312,7 @@ func (siw *ServerInterfaceWrapper) GetWithContentType(w http.ResponseWriter, r *
 	var err error
 
 	// ------------- Path parameter "content_type" -------------
-	var contentType GetWithContentTypeParamsContentType
+	var contentType string
 
 	err = runtime.BindStyledParameter("simple", false, "content_type", chi.URLParam(r, "content_type"), &contentType)
 	if err != nil {

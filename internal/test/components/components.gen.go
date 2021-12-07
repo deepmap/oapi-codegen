@@ -22,7 +22,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Has additional properties of type int
+// AdditionalPropertiesObject1 defines model for AdditionalPropertiesObject1.
 type AdditionalPropertiesObject1 struct {
 	Id                   int            `json:"id"`
 	Name                 string         `json:"name"`
@@ -30,32 +30,32 @@ type AdditionalPropertiesObject1 struct {
 	AdditionalProperties map[string]int `json:"-"`
 }
 
-// Does not allow additional properties
+// AdditionalPropertiesObject2 defines model for AdditionalPropertiesObject2.
 type AdditionalPropertiesObject2 struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
 }
 
-// Allows any additional property
+// AdditionalPropertiesObject3 defines model for AdditionalPropertiesObject3.
 type AdditionalPropertiesObject3 struct {
 	Name                 string                 `json:"name"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
-// Has anonymous field which has additional properties
+// AdditionalPropertiesObject4 defines model for AdditionalPropertiesObject4.
 type AdditionalPropertiesObject4 struct {
-	Inner                AdditionalPropertiesObject4_Inner `json:"inner"`
-	Name                 string                            `json:"name"`
-	AdditionalProperties map[string]interface{}            `json:"-"`
+	Inner                AdditionalPropertiesObject4Inner `json:"inner"`
+	Name                 string                           `json:"name"`
+	AdditionalProperties map[string]interface{}           `json:"-"`
 }
 
-// AdditionalPropertiesObject4_Inner defines model for AdditionalPropertiesObject4.Inner.
-type AdditionalPropertiesObject4_Inner struct {
+// AdditionalPropertiesObject4Inner defines model for AdditionalPropertiesObject4Inner.
+type AdditionalPropertiesObject4Inner struct {
 	Name                 string                 `json:"name"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
-// Has additional properties with schema for dictionaries
+// AdditionalPropertiesObject5 defines model for AdditionalPropertiesObject5.
 type AdditionalPropertiesObject5 struct {
 	AdditionalProperties map[string]SchemaObject `json:"-"`
 }
@@ -81,6 +81,25 @@ type ResponseObject struct {
 // RequestBody defines model for RequestBody.
 type RequestBody struct {
 	Field SchemaObject `json:"Field"`
+}
+
+// EnsureEverythingIsReferenced200JSON defines model for EnsureEverythingIsReferenced200JSON.
+type EnsureEverythingIsReferenced200JSON struct {
+	// Has additional properties with schema for dictionaries
+	Five *AdditionalPropertiesObject5 `json:"five,omitempty"`
+
+	// Has anonymous field which has additional properties
+	Four      *AdditionalPropertiesObject4 `json:"four,omitempty"`
+	JsonField *ObjectWithJsonField         `json:"jsonField,omitempty"`
+
+	// Has additional properties of type int
+	One *AdditionalPropertiesObject1 `json:"one,omitempty"`
+
+	// Allows any additional property
+	Three *AdditionalPropertiesObject3 `json:"three,omitempty"`
+
+	// Does not allow additional properties
+	Two *AdditionalPropertiesObject2 `json:"two,omitempty"`
 }
 
 // ParamsWithAddPropsParams_P1 defines parameters for ParamsWithAddProps.
@@ -600,25 +619,25 @@ func (a AdditionalPropertiesObject4) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// Getter for additional properties for AdditionalPropertiesObject4_Inner. Returns the specified
+// Getter for additional properties for AdditionalPropertiesObject4Inner. Returns the specified
 // element and whether it was found
-func (a AdditionalPropertiesObject4_Inner) Get(fieldName string) (value interface{}, found bool) {
+func (a AdditionalPropertiesObject4Inner) Get(fieldName string) (value interface{}, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
 	return
 }
 
-// Setter for additional properties for AdditionalPropertiesObject4_Inner
-func (a *AdditionalPropertiesObject4_Inner) Set(fieldName string, value interface{}) {
+// Setter for additional properties for AdditionalPropertiesObject4Inner
+func (a *AdditionalPropertiesObject4Inner) Set(fieldName string, value interface{}) {
 	if a.AdditionalProperties == nil {
 		a.AdditionalProperties = make(map[string]interface{})
 	}
 	a.AdditionalProperties[fieldName] = value
 }
 
-// Override default JSON handling for AdditionalPropertiesObject4_Inner to handle AdditionalProperties
-func (a *AdditionalPropertiesObject4_Inner) UnmarshalJSON(b []byte) error {
+// Override default JSON handling for AdditionalPropertiesObject4Inner to handle AdditionalProperties
+func (a *AdditionalPropertiesObject4Inner) UnmarshalJSON(b []byte) error {
 	object := make(map[string]json.RawMessage)
 	err := json.Unmarshal(b, &object)
 	if err != nil {
@@ -647,8 +666,8 @@ func (a *AdditionalPropertiesObject4_Inner) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Override default JSON handling for AdditionalPropertiesObject4_Inner to handle AdditionalProperties
-func (a AdditionalPropertiesObject4_Inner) MarshalJSON() ([]byte, error) {
+// Override default JSON handling for AdditionalPropertiesObject4Inner to handle AdditionalProperties
+func (a AdditionalPropertiesObject4Inner) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 

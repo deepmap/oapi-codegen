@@ -29,34 +29,25 @@ const (
 	Access_tokenScopes = "access_token.Scopes"
 )
 
-// Defines values for EnumInObjInArrayVal.
-const (
-	EnumInObjInArrayValFirst EnumInObjInArrayVal = "first"
-
-	EnumInObjInArrayValSecond EnumInObjInArrayVal = "second"
-)
-
-// This schema name starts with a number
+// N5StartsWithNumber defines model for 5StartsWithNumber.
 type N5StartsWithNumber map[string]interface{}
 
 // AnyType1 defines model for AnyType1.
 type AnyType1 interface{}
 
-// AnyType2 represents any type.
-//
-// This should be an interface{}
+// AnyType2 defines model for AnyType2.
 type AnyType2 interface{}
 
 // CustomStringType defines model for CustomStringType.
 type CustomStringType string
 
 // EnumInObjInArray defines model for EnumInObjInArray.
-type EnumInObjInArray []struct {
-	Val *EnumInObjInArrayVal `json:"val,omitempty"`
-}
+type EnumInObjInArray []EnumInObjInArrayItem
 
-// EnumInObjInArrayVal defines model for EnumInObjInArray.Val.
-type EnumInObjInArrayVal string
+// EnumInObjInArrayItem defines model for EnumInObjInArrayItem.
+type EnumInObjInArrayItem struct {
+	Val *string `json:"val,omitempty"`
+}
 
 // GenericObject defines model for GenericObject.
 type GenericObject map[string]interface{}
@@ -69,8 +60,53 @@ type NullableProperties struct {
 	RequiredAndNullable *string `json:"requiredAndNullable"`
 }
 
+// AbcSound defines model for abcSound.
+type AbcSound struct {
+	Sound *AbcSoundSound `json:"sound,omitempty"`
+}
+
+// AbcSoundSound defines model for AbcSoundSound.
+type AbcSoundSound struct {
+	Uk *string `json:"uk,omitempty"`
+}
+
 // StringInPath defines model for StringInPath.
 type StringInPath string
+
+// EnsureEverythingIsReferenced200JSON defines model for EnsureEverythingIsReferenced200JSON.
+type EnsureEverythingIsReferenced200JSON struct {
+	AnyType1 *AnyType1 `json:"anyType1,omitempty"`
+
+	// AnyType2 represents any type.
+	//
+	// This should be an interface{}
+	AnyType2         *AnyType2         `json:"anyType2,omitempty"`
+	CustomStringType *CustomStringType `foo:"bar" json:"customStringType,omitempty"`
+}
+
+// Issue127200JSON defines model for Issue127200JSON.
+type Issue127200JSON GenericObject
+
+// Issue127200XML defines model for Issue127200XML.
+type Issue127200XML GenericObject
+
+// Issue127200MARKDOWN defines model for Issue127200MARKDOWN.
+type Issue127200MARKDOWN GenericObject
+
+// Issue127200YAML defines model for Issue127200YAML.
+type Issue127200YAML GenericObject
+
+// Issue127defaultJSON defines model for Issue127defaultJSON.
+type Issue127defaultJSON GenericObject
+
+// Issue127defaultMARKDOWN defines model for Issue127defaultMARKDOWN.
+type Issue127defaultMARKDOWN GenericObject
+
+// GetIssues375200JSON defines model for GetIssues375200JSON.
+type GetIssues375200JSON EnumInObjInArray
+
+// LowerComponentsNameStart200JSON defines model for LowerComponentsNameStart200JSON.
+type LowerComponentsNameStart200JSON AbcSound
 
 // Issue185JSONBody defines parameters for Issue185.
 type Issue185JSONBody NullableProperties
@@ -189,6 +225,9 @@ type ClientInterface interface {
 	Issue9WithBody(ctx context.Context, params *Issue9Params, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	Issue9(ctx context.Context, params *Issue9Params, body Issue9JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LowerComponentsNameStart request
+	LowerComponentsNameStart(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) EnsureEverythingIsReferenced(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -301,6 +340,18 @@ func (c *Client) Issue9WithBody(ctx context.Context, params *Issue9Params, conte
 
 func (c *Client) Issue9(ctx context.Context, params *Issue9Params, body Issue9JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewIssue9Request(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LowerComponentsNameStart(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLowerComponentsNameStartRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -590,6 +641,33 @@ func NewIssue9RequestWithBody(server string, params *Issue9Params, contentType s
 	return req, nil
 }
 
+// NewLowerComponentsNameStartRequest generates requests for LowerComponentsNameStart
+func NewLowerComponentsNameStartRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/lowerComponentsNameStart/")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -660,6 +738,9 @@ type ClientWithResponsesInterface interface {
 	Issue9WithBodyWithResponse(ctx context.Context, params *Issue9Params, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*Issue9Response, error)
 
 	Issue9WithResponse(ctx context.Context, params *Issue9Params, body Issue9JSONRequestBody, reqEditors ...RequestEditorFn) (*Issue9Response, error)
+
+	// LowerComponentsNameStart request
+	LowerComponentsNameStartWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LowerComponentsNameStartResponse, error)
 }
 
 type EnsureEverythingIsReferencedResponse struct {
@@ -844,6 +925,28 @@ func (r Issue9Response) StatusCode() int {
 	return 0
 }
 
+type LowerComponentsNameStartResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AbcSound
+}
+
+// Status returns HTTPResponse.Status
+func (r LowerComponentsNameStartResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LowerComponentsNameStartResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // EnsureEverythingIsReferencedWithResponse request returning *EnsureEverythingIsReferencedResponse
 func (c *ClientWithResponses) EnsureEverythingIsReferencedWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*EnsureEverythingIsReferencedResponse, error) {
 	rsp, err := c.EnsureEverythingIsReferenced(ctx, reqEditors...)
@@ -930,6 +1033,15 @@ func (c *ClientWithResponses) Issue9WithResponse(ctx context.Context, params *Is
 		return nil, err
 	}
 	return ParseIssue9Response(rsp)
+}
+
+// LowerComponentsNameStartWithResponse request returning *LowerComponentsNameStartResponse
+func (c *ClientWithResponses) LowerComponentsNameStartWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*LowerComponentsNameStartResponse, error) {
+	rsp, err := c.LowerComponentsNameStart(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLowerComponentsNameStartResponse(rsp)
 }
 
 // ParseEnsureEverythingIsReferencedResponse parses an HTTP response from a EnsureEverythingIsReferencedWithResponse call
@@ -1125,6 +1237,32 @@ func ParseIssue9Response(rsp *http.Response) (*Issue9Response, error) {
 	return response, nil
 }
 
+// ParseLowerComponentsNameStartResponse parses an HTTP response from a LowerComponentsNameStartWithResponse call
+func ParseLowerComponentsNameStartResponse(rsp *http.Response) (*LowerComponentsNameStartResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LowerComponentsNameStartResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AbcSound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -1151,6 +1289,9 @@ type ServerInterface interface {
 
 	// (GET /issues/9)
 	Issue9(ctx echo.Context, params Issue9Params) error
+
+	// (GET /lowerComponentsNameStart/)
+	LowerComponentsNameStart(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -1276,6 +1417,17 @@ func (w *ServerInterfaceWrapper) Issue9(ctx echo.Context) error {
 	return err
 }
 
+// LowerComponentsNameStart converts echo context to params.
+func (w *ServerInterfaceWrapper) LowerComponentsNameStart(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(Access_tokenScopes, []string{""})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.LowerComponentsNameStart(ctx)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -1312,33 +1464,35 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/issues/375", wrapper.GetIssues375)
 	router.GET(baseURL+"/issues/41/:1param", wrapper.Issue41)
 	router.GET(baseURL+"/issues/9", wrapper.Issue9)
+	router.GET(baseURL+"/lowerComponentsNameStart/", wrapper.LowerComponentsNameStart)
 
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"a/tt7uBHGrEqZTWShiX23wAAAP//YF2RvoUQAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

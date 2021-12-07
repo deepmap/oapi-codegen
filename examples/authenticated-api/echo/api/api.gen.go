@@ -41,7 +41,7 @@ type Thing struct {
 
 // ThingWithID defines model for ThingWithID.
 type ThingWithID struct {
-	// Embedded struct due to allOf(#/components/schemas/Thing)
+	// Embedded struct due to allOf(Thing)
 	Thing `yaml:",inline"`
 	// Embedded fields due to inline allOf schema
 	Id int64 `json:"id"`

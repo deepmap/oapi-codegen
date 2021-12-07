@@ -44,7 +44,7 @@ func (s Schema) TypeDecl() string {
 func (s *Schema) MergeProperty(p Property) error {
 	// Scan all existing properties for a conflict
 	for _, e := range s.Properties {
-		if e.JsonFieldName == p.JsonFieldName && !PropertiesEqual(e, p) {
+		if e.JsonFieldName == p.JsonFieldName || PropertiesEqual(e, p) {
 			return errors.New(fmt.Sprintf("property '%s' already exists with a different type", e.JsonFieldName))
 		}
 	}
@@ -299,16 +299,6 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 				constNamePath = append(path, k)
 			}
 			outSchema.EnumValues[SchemaNameToTypeName(PathToTypeName(constNamePath))] = v
-		}
-		if len(path) > 1 { // handle additional type only on non-toplevel types
-			typeName := SchemaNameToTypeName(PathToTypeName(path))
-			typeDef := TypeDefinition{
-				TypeName: typeName,
-				JsonName: strings.Join(path, "."),
-				Schema:   outSchema,
-			}
-			outSchema.AdditionalTypes = append(outSchema.AdditionalTypes, typeDef)
-			outSchema.RefType = typeName
 		}
 		//outSchema.RefType = typeName
 	} else {
