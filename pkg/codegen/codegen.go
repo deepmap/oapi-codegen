@@ -49,6 +49,7 @@ type Options struct {
 	UserTemplates      map[string]string // Override built-in templates from user-provided files
 	ImportMapping      map[string]string // ImportMapping specifies the golang package path for each external reference
 	ExcludeSchemas     []string          // Exclude from generation schemas with given names. Ignored when empty.
+	TypesPackage       string            // Types are placed in a separated package with this name. Ignored when empty.
 }
 
 // goImport represents a go package to be imported in the generated code
@@ -135,7 +136,7 @@ func Generate(swagger *openapi3.T, packageName string, opts Options) (string, er
 		}
 	}
 
-	ops, err := OperationDefinitions(swagger)
+	ops, err := OperationDefinitions(swagger, opts.TypesPackage)
 	if err != nil {
 		return "", fmt.Errorf("error creating operation definitions: %w", err)
 	}
@@ -376,7 +377,7 @@ func GenerateTypesForSchemas(t *template.Template, schemas map[string]*openapi3.
 		}
 		schemaRef := schemas[schemaName]
 
-		goSchema, err := GenerateGoSchema(schemaRef, []string{schemaName})
+		goSchema, err := GenerateGoSchema(schemaRef, []string{schemaName}, "")
 		if err != nil {
 			return nil, fmt.Errorf("error converting Schema %s to Go type: %w", schemaName, err)
 		}
@@ -399,7 +400,7 @@ func GenerateTypesForParameters(t *template.Template, params map[string]*openapi
 	for _, paramName := range SortedParameterKeys(params) {
 		paramOrRef := params[paramName]
 
-		goType, err := paramToGoType(paramOrRef.Value, nil)
+		goType, err := paramToGoType(paramOrRef.Value, nil, "")
 		if err != nil {
 			return nil, fmt.Errorf("error generating Go type for schema in parameter %s: %w", paramName, err)
 		}
@@ -438,7 +439,7 @@ func GenerateTypesForResponses(t *template.Template, responses openapi3.Response
 		response := responseOrRef.Value
 		jsonResponse, found := response.Content["application/json"]
 		if found {
-			goType, err := GenerateGoSchema(jsonResponse.Schema, []string{responseName})
+			goType, err := GenerateGoSchema(jsonResponse.Schema, []string{responseName}, "")
 			if err != nil {
 				return nil, fmt.Errorf("error generating Go type for schema in response %s: %w", responseName, err)
 			}
@@ -476,7 +477,7 @@ func GenerateTypesForRequestBodies(t *template.Template, bodies map[string]*open
 		response := bodyOrRef.Value
 		jsonBody, found := response.Content["application/json"]
 		if found {
-			goType, err := GenerateGoSchema(jsonBody.Schema, []string{bodyName})
+			goType, err := GenerateGoSchema(jsonBody.Schema, []string{bodyName}, "")
 			if err != nil {
 				return nil, fmt.Errorf("error generating Go type for schema in body %s: %w", bodyName, err)
 			}

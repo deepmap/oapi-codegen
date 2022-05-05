@@ -17,6 +17,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"unicode"
@@ -145,7 +146,7 @@ func DescribeParameters(params openapi3.Parameters, path []string) ([]ParameterD
 	for _, paramOrRef := range params {
 		param := paramOrRef.Value
 
-		goType, err := paramToGoType(param, append(path, param.Name))
+		goType, err := paramToGoType(param, append(path, param.Name), "")
 		if err != nil {
 			return nil, fmt.Errorf("error generating type for param (%s): %s",
 				param.Name, err)
@@ -195,13 +196,15 @@ func DescribeSecurityDefinition(securityRequirements openapi3.SecurityRequiremen
 
 // This structure describes an Operation
 type OperationDefinition struct {
-	OperationId string // The operation_id description from Swagger, used to generate function names
+	OperationId  string // The operation_id description from Swagger, used to generate function names
+	TypesPackage string
 
 	PathParams          []ParameterDefinition // Parameters in the path, eg, /path/:param
 	HeaderParams        []ParameterDefinition // Parameters in HTTP headers
 	QueryParams         []ParameterDefinition // Parameters in the query, /path?param
 	CookieParams        []ParameterDefinition // Parameters in cookies
 	TypeDefinitions     []TypeDefinition      // These are all the types we need to define for this operation
+	TypePackage         string                // Where the type is stored, if empty - the same package
 	SecurityDefinitions []SecurityDefinition  // These are the security providers
 	BodyRequired        bool
 	Bodies              []RequestBodyDefinition // The list of bodies for which to generate handlers.
@@ -232,6 +235,16 @@ func (o *OperationDefinition) AllParams() []ParameterDefinition {
 // engine.
 func (o *OperationDefinition) RequiresParamObject() bool {
 	return len(o.Params()) > 0
+}
+
+// If the type are placed in separated module it's a way to get the package
+// name and prepend to the type in the template.
+func (o *OperationDefinition) TypePackagePrefix() string {
+	if len(o.TypePackage) > 0 {
+		return o.TypePackage
+	}
+
+	return ""
 }
 
 // This is called by the template engine to determine whether to generate body
@@ -273,7 +286,7 @@ func (o *OperationDefinition) GetResponseTypeDefinitions() ([]ResponseTypeDefini
 				contentType := responseRef.Value.Content[contentTypeName]
 				// We can only generate a type if we have a schema:
 				if contentType.Schema != nil {
-					responseSchema, err := GenerateGoSchema(contentType.Schema, []string{responseName})
+					responseSchema, err := GenerateGoSchema(contentType.Schema, []string{responseName}, o.TypesPackage)
 					if err != nil {
 						return nil, fmt.Errorf("Unable to determine Go type for %s.%s: %w", o.OperationId, contentTypeName, err)
 					}
@@ -374,8 +387,11 @@ func FilterParameterDefinitionByType(params []ParameterDefinition, in string) []
 }
 
 // OperationDefinitions returns all operations for a swagger definition.
-func OperationDefinitions(swagger *openapi3.T) ([]OperationDefinition, error) {
+func OperationDefinitions(swagger *openapi3.T, typesPackage string) ([]OperationDefinition, error) {
 	var operations []OperationDefinition
+	if typesPackage != "" {
+		typesPackage = filepath.Base(typesPackage) + "."
+	}
 
 	for _, requestPath := range SortedPathsKeys(swagger.Paths) {
 		pathItem := swagger.Paths[requestPath]
@@ -437,6 +453,7 @@ func OperationDefinitions(swagger *openapi3.T) ([]OperationDefinition, error) {
 				QueryParams:  FilterParameterDefinitionByType(allParams, "query"),
 				CookieParams: FilterParameterDefinitionByType(allParams, "cookie"),
 				OperationId:  ToCamelCase(op.OperationID),
+				TypesPackage: typesPackage,
 				// Replace newlines in summary.
 				Summary:         op.Summary,
 				Method:          opName,
@@ -444,6 +461,7 @@ func OperationDefinitions(swagger *openapi3.T) ([]OperationDefinition, error) {
 				Spec:            op,
 				Bodies:          bodyDefinitions,
 				TypeDefinitions: typeDefinitions,
+				TypePackage:     typesPackage,
 			}
 
 			// check for overrides of SecurityDefinitions.
@@ -517,7 +535,7 @@ func GenerateBodyDefinitions(operationID string, bodyOrRef *openapi3.RequestBody
 		}
 
 		bodyTypeName := operationID + tag + "Body"
-		bodySchema, err := GenerateGoSchema(content.Schema, []string{bodyTypeName})
+		bodySchema, err := GenerateGoSchema(content.Schema, []string{bodyTypeName}, "")
 		if err != nil {
 			return nil, nil, fmt.Errorf("error generating request body definition: %w", err)
 		}
