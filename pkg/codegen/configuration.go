@@ -139,6 +139,32 @@ type OutputOptions struct {
 
 	// NameNormalizer is the method used to normalize Go names and types, for instance converting the text `MyApi` to `MyAPI`. Corresponds with the constants defined for `codegen.NameNormalizerFunction`
 	NameNormalizer string `yaml:"name-normalizer,omitempty"`
+
+	// TypeMappings provides the ability to configure how types are mapped
+	// including overriding the default behaviour.
+	// Entries keys are in the format: <schemaType>:<schemaFormat>.
+	//
+	// An example of a custom type for type: "string", format: "uuid":
+	//   type-mappings:
+	//     string-uuid:
+	//       skip-optional-pointer: true
+	//       define-via-alias: true
+	TypeMappings map[string]TypeMapping `yaml:"type-mappings,omitempty"`
+}
+
+// TypeMapping defines a schema type mapping override.
+type TypeMapping struct {
+	// GoType is the go type that will be used to represent the schema.
+	GoType string `yaml:"go-type"`
+
+	// SkipOptionalPointer should be set t true if we don't need a pointer type
+	// even when they are optional.
+	SkipOptionalPointer bool `yaml:"skip-optional-pointer"`
+
+	// DefineViaAlias if true schema will declare a type via alias
+	// `type Foo = bool`, otherwise the type definition will be a classic
+	// `type Foo bool`
+	DefineViaAlias bool `yaml:"define-via-alias"`
 }
 
 // UpdateDefaults sets reasonable default values for unset fields in Configuration
