@@ -14,6 +14,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -261,6 +262,11 @@ func main() {
 	swagger, err := util.LoadSwaggerWithCircularReferenceCount(flag.Arg(0), opts.Compatibility.CircularReferenceLimit)
 	if err != nil {
 		errExit("error loading swagger spec in %s\n: %s", flag.Arg(0), err)
+	}
+
+	err = swagger.Validate(context.Background())
+	if err != nil {
+		errExit("the swagger spec in %s is not valid\n: %s", flag.Arg(0), err)
 	}
 
 	code, err := codegen.Generate(swagger, opts.Configuration)
