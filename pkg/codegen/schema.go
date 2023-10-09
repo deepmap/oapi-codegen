@@ -71,7 +71,12 @@ func (s Schema) GetAdditionalTypeDefs() []TypeDefinition {
 	for _, p := range s.Properties {
 		result = append(result, p.Schema.GetAdditionalTypeDefs()...)
 	}
-	result = append(result, s.AdditionalTypes...)
+
+	for _, a := range s.AdditionalTypes {
+		result = append(result, a)
+		result = append(result, a.Schema.GetAdditionalTypeDefs()...)
+	}
+
 	return result
 }
 

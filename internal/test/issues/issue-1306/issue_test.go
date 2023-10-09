@@ -8,9 +8,18 @@ import (
 )
 
 func TestIssue1306(t *testing.T) {
-	actualType := reflect.TypeOf(issue1306.SomeObject{})
+	actualType := reflect.TypeOf(issue1306.SomeType{})
 	expectedType := reflect.TypeOf(struct {
-		Name *string `json:"name,omitempty"`
+		Name    *string                    `json:"name,omitempty"`
+		Objects *[]issue1306.SomeChildType `json:"objects,omitempty"`
+	}{})
+
+	assert.True(t, actualType.AssignableTo(expectedType))
+
+	actualType = reflect.TypeOf(issue1306.SomeChildType{})
+	expectedType = reflect.TypeOf(struct {
+		Key   *string `json:"key,omitempty"`
+		Value *string `json:"value,omitempty"`
 	}{})
 
 	assert.True(t, actualType.AssignableTo(expectedType))
