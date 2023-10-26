@@ -60,6 +60,18 @@ func BindStringToObject(src string, dst interface{}) error {
 		return errors.New("destination is not settable")
 	}
 
+	// For reflect.Struct, needs individual correspondence
+	if t.Kind() != reflect.Struct {
+		// If the destination implements encoding.TextUnmarshaler we use it for binding
+		if tu, ok := dst.(encoding.TextUnmarshaler); ok {
+			if err := tu.UnmarshalText([]byte(src)); err != nil {
+				return fmt.Errorf("error unmarshaling '%s' text as %T: %s", src, dst, err)
+			}
+
+			return nil
+		}
+	}
+
 	switch t.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		var val int64
@@ -99,16 +111,7 @@ func BindStringToObject(src string, dst interface{}) error {
 		if err == nil {
 			v.SetBool(val)
 		}
-	case reflect.Array:
-		if tu, ok := dst.(encoding.TextUnmarshaler); ok {
-			if err := tu.UnmarshalText([]byte(src)); err != nil {
-				return fmt.Errorf("error unmarshaling '%s' text as %T: %s", src, dst, err)
-			}
-
-			return nil
-		}
-		fallthrough
-	case reflect.Struct:
+	case reflect.Array, reflect.Struct:
 		// if this is not of type Time or of type Date look to see if this is of type Binder.
 		if dstType, ok := dst.(Binder); ok {
 			return dstType.Bind(src)
@@ -159,6 +162,14 @@ func BindStringToObject(src string, dst interface{}) error {
 				v = reflect.Indirect(vtPtr)
 			}
 			v.Set(reflect.ValueOf(parsedDate))
+			return nil
+		}
+
+		if tu, ok := dst.(encoding.TextUnmarshaler); ok {
+			if err := tu.UnmarshalText([]byte(src)); err != nil {
+				return fmt.Errorf("error unmarshaling '%s' text as %T: %s", src, dst, err)
+			}
+
 			return nil
 		}
 
