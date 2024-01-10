@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/deepmap/oapi-codegen/v2/pkg/util"
+	"github.com/deepmap/oapi-codegen/v2/pkg/codegen/openapi"
 )
 
 func TestLoader(t *testing.T) {
@@ -15,11 +15,11 @@ func TestLoader(t *testing.T) {
 
 	for _, v := range paths {
 
-		swagger, err := util.LoadSwagger(v)
+		swagger, err := openapi.LoadOpenAPI(v)
 		if err != nil {
 			t.Error(err)
 		}
-		if swagger == nil || swagger.Info == nil || swagger.Info.Version == "" {
+		if swagger == nil || swagger.Model.Info == nil || swagger.Model.Info.Version == "" {
 			t.Error("missing data")
 		}
 	}
