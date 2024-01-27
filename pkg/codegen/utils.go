@@ -332,14 +332,11 @@ func SortedSecurityRequirementKeys(sr openapi3.SecurityRequirement) []string {
 }
 
 // StringInArray checks whether the specified string is present in an array
-// of strings
-func StringInArray(str string, array []string) bool {
-	for _, elt := range array {
-		if elt == str {
-			return true
-		}
-	}
-	return false
+// of strings.
+//
+// Deprecated: use sliceContains instead.
+func StringInArray(array []string, str string) bool {
+	return sliceContains(array, str)
 }
 
 // RefPathToObjName returns the name of referenced object without changes.
