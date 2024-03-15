@@ -685,7 +685,7 @@ which help you to use the various OpenAPI 3 Authentication mechanism.
         // Example providing your own provider using an anonymous function wrapping in the
         // InterceptorFn adapter. The behaviour between the InterceptorFn and the Interceptor interface
         // are the same as http.HandlerFunc and http.Handler.
-        customProvider := func(req *http.Request, ctx context.Context) error {
+        customProvider := func(ctx context.Context, req *http.Request) error {
             // Just log the request header, nothing else.
             log.Println(req.Header)
             return nil
