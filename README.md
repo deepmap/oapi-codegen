@@ -1,9 +1,22 @@
-## OpenAPI Client and Server Code Generator
+# `oapi-codegen`
+
+`oapi-codegen` is a library, and command-line tool, to convert OpenAPI API specifications to Go code, be it server-side implementations, API clients, or simply models.
+
+`oapi-codegen` aims to reduce some of the tedious boilerplate that can be found when building or interacting with APIs, and focusses on:
+
+- idiomatic Go, where possible
+- fairly simple generated code, erring on the side of duplicate code over nicely refactored code
+- supporting as much of OpenAPI 3.x as is possible, alongside Go's type system
 
 ⚠️ This README may be for the latest development version, which may contain
 unreleased changes. Please ensure you're looking at the README for the latest
 release version.
 
+Does not 2.0
+
+## OpenAPI Client and Server Code Generator
+
+```
 This package contains a set of utilities for generating Go boilerplate code for
 services based on
 [OpenAPI 3.0](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md)
@@ -28,34 +41,186 @@ typed Go code for all possible OpenAPI Schemas. If there is a way to accomplish
 something via utility code or reflection, it's probably a better approach than
 code generation, which is fragile due to the very dynamic nature of OpenAPI and
 the very static nature of Go.
+```
 
-## Contributing
+## Install
 
-I would like to pre-emptively extend my gratitude to anyone who takes the time
-to improve this project.
+It is recommended to follow [the `tools.go` pattern](https://www.jvt.me/posts/2022/06/15/go-tools-dependency-management/) for managing the dependency of `oapi-codegen` alongside your core application.
 
-Oapi-codegen is being actively maintained, however the two people who do so
-are very busy, and can only set aside time for this project every once in a while,
-so our release cadence is slow and conservative.
+This would give you a `tools/tools.go`:
 
-Generating code which others depend on, which is based on something as complex
-as OpenAPI is fraught with many edge cases, and we prefer to leave things as
-they are if there is a reasonable workaround.
+```go
+//go:build tools
+// +build tools
 
-If you do find a case where oapi-codegen is broken, and would like to submit a PR,
-we are very grateful, and will happily look at it.
+package main
 
-Since most commits affect generated code, before sending your PR, please
-ensure that all boilerplate has been regenerated. You can do this from the top level
-of the repository by running:
+import (
+	_ "github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen"
+)
+```
 
-    make generate
+Then, each **??**
 
-I realize that our code isn't entirely idiomatic with respect to comments, and
-variable naming and initialisms, especially the generated code, but I'm reluctant
-to merge PR's which change this, due to the breakage they will cause for others. If 
-you rename anything under `/pkg` or change the names of variables in generated
-code, you will break other people's code. It's safe to rename internal names.
+Alternatively, you can install it as a binary with:
+
+```sh
+$ go install github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen@latest
+$ oapi-codegen -version
+```
+
+## Usage
+
+`oapi-codegen` is largely **??**.
+
+For full https://pkg.go.dev/github.com/deepmap/oapi-codegen/v2/pkg/codegen#Configuration
+
+## Features
+
+`oapi-codegen` supports:
+
+- Generating server-side boilerplate for [a number of servers]
+- Generating client API boilerplate
+- Generating the types
+- Splitting **??**
+  - Also described as ["external refs"] or "Import Mappings" in our documentation
+
+## Key design decisions
+
+- Bulk processing and parsing of OpenAPI document in Go
+- Resulting output is using Go's `text/template`s, which are user-overridable
+- Idiomatic Go
+- Single-file output
+- Support multiple OpenAPI files by having a package-per-file
+- **??**
+
+### Generating server-side boilerplate
+
+`oapi-codegen` shines by making it fairly straightforward (note that this is a purposeful choice of wording here - we want to avoid words like "easy") to generate the server-side boilerplate for a backend API.
+
+```
+--------
+```
+
+Now you've generated this, you need to implement **??**.
+
+```go
+
+```
+
+To provide you a fully Test Driven Development style test harness, you could use a tool such as **??** to **??**.
+
+#### Supported Servers
+
+<table>
+
+<tr>
+<th>
+Server name
+</th>
+<th>
+Configuration **??**
+</th>
+</tr>
+
+<tr>
+<td>
+</td>
+<td>
+<code> </code>
+</td>
+</tr>
+
+<tr>
+<td>
+</td>
+<td>
+<code> </code>
+</td>
+</tr>
+
+<tr>
+<td>
+</td>
+<td>
+<code> </code>
+</td>
+</tr>
+
+<tr>
+<td>
+</td>
+<td>
+<code> </code>
+</td>
+</tr>
+
+</table>
+
+### Generating API clients
+
+### Generating API models
+
+If you're looking to only generate the models for interacting with a remote service, for instance if you need to hand-roll the API client for whatever reason, you can do this as-is.
+
+### Generating Nullable types
+
+Opt-in, **??**
+
+### OpenAPI extensions
+
+As well as inbuilt OpenAPI, we also support the following OpenAPI extensions.
+
+####
+
+### Custom code generation
+
+It is possible to extend **??** using the templates **??**.
+
+#### Local paths
+
+#### HTTPS paths
+
+It is also possible to use HTTPS URLs.
+
+> [!WARNING]
+> Although possible, this does lead to **??**. It's recommended to vendor (copy) the OpenAPI spec into your **??**
+
+To use it, **??**
+
+```yaml
+TODO
+```
+
+> [!WARNING]
+> If using URLs that pull locations from a Git repo, such as `raw.githubusercontent.com`, it is strongly encouraged to use a tag or a raw commit hash instead of a branch like `main`. Tracking a branch can lead to unexpected API drift, and loss of the ability to reproduce a build.
+
+#### Using the Go package
+
+Alternatively, you are able to use the underlying code generation as a package, which [will be documented in the future](https://github.com/deepmap/oapi-codegen/issues/1487).
+
+## Examples
+
+The [examples directory] contains some **??**, including how you'd take the Petstore API and **??**.
+
+
+
+### Blog posts
+
+The are a number of **??**
+
+- TODO
+https://www.jvt.me/posts/2022/07/12/go-openapi-server/
+
+Got one to add? Please raise a PR!
+
+--------
+--------
+--------
+--------
+--------
+--------
+--------
 
 ## Overview
 
@@ -762,17 +927,17 @@ which help you to use the various OpenAPI 3 Authentication mechanism.
 - `x-go-type-skip-optional-pointer`: specifies if the Go type should or should not be a pointer
   when the property is optional. If set to true, the type will not be a pointer if the field is
   optional or nullable. If set to false, the type will be a pointer.
-  
+
   ```yaml
   properties:
     field:
       type: string
       x-go-type-skip-optional-pointer: true
   ```
-  
+
   In the example above, the `field` field will be of type `string` instead of `*string`. This is
   useful when you want to handle the case of an empty string differently than a null value.
-  
+
 - `x-go-name`: specifies Go field name. It allows you to specify the field name for a schema, and
   will override any default value. This extended property isn't supported in all parts of
   OpenAPI, so please refer to the spec as to where it's allowed. Swagger validation tools will
@@ -920,7 +1085,7 @@ which help you to use the various OpenAPI 3 Authentication mechanism.
       End   *openapi_types.Date `json:"end,omitempty"`
     }
     ```
-  
+
 ## Using `oapi-codegen`
 
 The default options for `oapi-codegen` will generate everything; client, server,
@@ -958,7 +1123,7 @@ run `oapi-codegen -generate types,server`. You could generate `types` and
 `server` into separate files, but both are required for the server code.
 
 `oapi-codegen` can filter paths base on their tags or operationId in the openapi definition.
-Use either `-include-tags`, `include-operation-ids` or `-exclude-tags`, `-exclude-operation-ids` 
+Use either `-include-tags`, `include-operation-ids` or `-exclude-tags`, `-exclude-operation-ids`
 followed by a comma-separated list of tags or operation ids. For instance, to generate a server
 that serves all paths except those tagged with `auth` or `admin`, use the argument, `-exclude-tags="auth,admin"`.
 To generate a server that only handles `admin` paths, use the argument
