@@ -530,7 +530,7 @@ func GenerateTypesForSchemas(t *template.Template, schemas map[string]*openapi3.
 			Schema:   goSchema,
 		})
 
-		types = append(types, goSchema.GetAdditionalTypeDefs()...)
+		types = append(types, goSchema.AdditionalTypes...)
 	}
 	return types, nil
 }
