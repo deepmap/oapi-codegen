@@ -1,0 +1,29 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Mode ref resolution Example
+paths:
+  /records:
+    get:
+      operationId: getRecords
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Records'
+  /record:
+    get:
+      operationId: getRecord
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Record'      
+components:
+  schemas:
+    Record:
+      $ref: './schemas/record.yaml'
+    Records:
+      $ref: './schemas/records.yaml'

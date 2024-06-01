@@ -486,6 +486,16 @@ func IsWholeDocumentReference(ref string) bool {
 	return ref != "" && !strings.ContainsAny(ref, "#")
 }
 
+// IsRemoteReference takes a $ref value and checks if it is remote reference.
+func IsRemoteReference(ref string) bool {
+	return !strings.HasPrefix(ref, "#") && !IsURLReference(ref)
+}
+
+// IsURLReference takes a $ref value and checks if it is URL reference.
+func IsURLReference(ref string) bool {
+	return strings.HasPrefix(ref, "http://") || strings.HasPrefix(ref, "https://") || strings.HasPrefix(ref, "//")
+}
+
 // SwaggerUriToIrisUri converts a OpenAPI style path URI with parameters to an
 // Iris compatible path URI. We need to replace all of OpenAPI parameters with
 //

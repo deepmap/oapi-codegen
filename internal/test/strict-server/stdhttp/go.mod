@@ -6,6 +6,8 @@ replace github.com/deepmap/oapi-codegen/v2 => ../../../../
 
 replace github.com/deepmap/oapi-codegen/v2/internal/test => ../..
 
+replace github.com/getkin/kin-openapi v0.123.0 => github.com/percivalalb/kin-openapi v0.0.0-20240422194646-830634898f6a
+
 require (
 	github.com/deepmap/oapi-codegen/v2 v2.0.0-00010101000000-000000000000
 	github.com/deepmap/oapi-codegen/v2/internal/test v0.0.0-00010101000000-000000000000

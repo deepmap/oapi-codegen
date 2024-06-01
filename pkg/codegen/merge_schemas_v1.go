@@ -22,7 +22,7 @@ func mergeSchemasV1(allOf []*openapi3.SchemaRef, path []string) (Schema, error) 
 			}
 		}
 
-		schema, err := GenerateGoSchema(schemaOrRef, path)
+		schema, err := GenerateGoSchema(schemaOrRef, path, false)
 		if err != nil {
 			return Schema{}, fmt.Errorf("error generating Go schema in allOf: %w", err)
 		}
@@ -86,7 +86,7 @@ func GenStructFromAllOf(allOf []*openapi3.SchemaRef, path []string) (string, err
 		} else {
 			// Inline all the fields from the schema into the output struct,
 			// just like in the simple case of generating an object.
-			goSchema, err := GenerateGoSchema(schemaOrRef, path)
+			goSchema, err := GenerateGoSchema(schemaOrRef, path, false)
 			if err != nil {
 				return "", err
 			}

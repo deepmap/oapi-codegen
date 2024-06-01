@@ -232,7 +232,7 @@ func PropertiesEqual(a, b Property) bool {
 	return a.JsonFieldName == b.JsonFieldName && a.Schema.TypeDecl() == b.Schema.TypeDecl() && a.Required == b.Required
 }
 
-func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
+func GenerateGoSchema(sref *openapi3.SchemaRef, path []string, component bool) (Schema, error) {
 	// Add a fallback value in case the sref is nil.
 	// i.e. the parent schema defines a type:array, but the array has
 	// no items defined. Therefore, we have at least valid Go-Code.
@@ -241,6 +241,25 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 	}
 
 	schema := sref.Value
+
+	// Do not try and reconsole when actually generating global schemas:
+	if !component {
+		refPath, match := globalState.spec.MatchesSchemaInRootDocument(sref)
+
+		if match {
+			refType, err := RefPathToGoType(refPath)
+			if err != nil {
+				return Schema{}, fmt.Errorf("error turning reference (%s) matched %s into a Go type: %s",
+					sref.Ref, refPath, err)
+			}
+			return Schema{
+				GoType:         refType,
+				Description:    schema.Description,
+				DefineViaAlias: true,
+				OAPISchema:     schema,
+			}, nil
+		}
+	}
 
 	// If Ref is set on the SchemaRef, it means that this type is actually a reference to
 	// another type. We're not de-referencing, so simply use the referenced type.
@@ -338,7 +357,7 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 			// If additional properties are defined, we will override the default
 			// above with the specific definition.
 			if schema.AdditionalProperties.Schema != nil {
-				additionalSchema, err := GenerateGoSchema(schema.AdditionalProperties.Schema, path)
+				additionalSchema, err := GenerateGoSchema(schema.AdditionalProperties.Schema, path, false)
 				if err != nil {
 					return Schema{}, fmt.Errorf("error generating type for additional properties: %w", err)
 				}
@@ -380,7 +399,7 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 			for _, pName := range SortedSchemaKeys(schema.Properties) {
 				p := schema.Properties[pName]
 				propertyPath := append(path, pName)
-				pSchema, err := GenerateGoSchema(p, propertyPath)
+				pSchema, err := GenerateGoSchema(p, propertyPath, false)
 				if err != nil {
 					return Schema{}, fmt.Errorf("error generating Go schema for property '%s': %w", pName, err)
 				}
@@ -541,7 +560,7 @@ func oapiSchemaToGoType(schema *openapi3.Schema, path []string, outSchema *Schem
 	case "array":
 		// For arrays, we'll get the type of the Items and throw a
 		// [] in front of it.
-		arrayType, err := GenerateGoSchema(schema.Items, path)
+		arrayType, err := GenerateGoSchema(schema.Items, path, false)
 		if err != nil {
 			return fmt.Errorf("error generating type for array: %w", err)
 		}
@@ -793,7 +812,7 @@ func paramToGoType(param *openapi3.Parameter, path []string) (Schema, error) {
 
 	// We can process the schema through the generic schema processor
 	if param.Schema != nil {
-		return GenerateGoSchema(param.Schema, path)
+		return GenerateGoSchema(param.Schema, path, false)
 	}
 
 	// At this point, we have a content type. We know how to deal with
@@ -817,7 +836,7 @@ func paramToGoType(param *openapi3.Parameter, path []string) (Schema, error) {
 	}
 
 	// For json, we go through the standard schema mechanism
-	return GenerateGoSchema(mt.Schema, path)
+	return GenerateGoSchema(mt.Schema, path, false)
 }
 
 func generateUnion(outSchema *Schema, elements openapi3.SchemaRefs, discriminator *openapi3.Discriminator, path []string) error {
@@ -831,7 +850,7 @@ func generateUnion(outSchema *Schema, elements openapi3.SchemaRefs, discriminato
 	refToGoTypeMap := make(map[string]string)
 	for i, element := range elements {
 		elementPath := append(path, fmt.Sprint(i))
-		elementSchema, err := GenerateGoSchema(element, elementPath)
+		elementSchema, err := GenerateGoSchema(element, elementPath, false)
 		if err != nil {
 			return err
 		}

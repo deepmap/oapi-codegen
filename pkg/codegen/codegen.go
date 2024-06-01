@@ -521,7 +521,7 @@ func GenerateTypesForSchemas(t *template.Template, schemas map[string]*openapi3.
 		}
 		schemaRef := schemas[schemaName]
 
-		goSchema, err := GenerateGoSchema(schemaRef, []string{schemaName})
+		goSchema, err := GenerateGoSchema(schemaRef, []string{schemaName}, true)
 		if err != nil {
 			return nil, fmt.Errorf("error converting Schema %s to Go type: %w", schemaName, err)
 		}
@@ -606,7 +606,7 @@ func GenerateTypesForResponses(t *template.Template, responses openapi3.Response
 				continue
 			}
 
-			goType, err := GenerateGoSchema(response.Schema, []string{responseName})
+			goType, err := GenerateGoSchema(response.Schema, []string{responseName}, false)
 			if err != nil {
 				return nil, fmt.Errorf("error generating Go type for schema in response %s: %w", responseName, err)
 			}
@@ -657,7 +657,7 @@ func GenerateTypesForRequestBodies(t *template.Template, bodies map[string]*open
 				continue
 			}
 
-			goType, err := GenerateGoSchema(body.Schema, []string{requestBodyName})
+			goType, err := GenerateGoSchema(body.Schema, []string{requestBodyName}, false)
 			if err != nil {
 				return nil, fmt.Errorf("error generating Go type for schema in body %s: %w", requestBodyName, err)
 			}

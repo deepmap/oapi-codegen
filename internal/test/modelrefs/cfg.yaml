@@ -1,0 +1,6 @@
+package: modelrefs
+output: modelrefs.gen.go
+generate:
+  models: true
+  client: true
+  echo-server: true
