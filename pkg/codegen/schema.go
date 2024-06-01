@@ -537,6 +537,14 @@ func oapiSchemaToGoType(schema *openapi3.Schema, path []string, outSchema *Schem
 	f := schema.Format
 	t := schema.Type
 
+	if tm, ok := globalState.options.OutputOptions.TypeMappings[t+"-"+f]; ok {
+		// Config TypeMapping override.
+		outSchema.GoType = tm.GoType
+		outSchema.DefineViaAlias = tm.DefineViaAlias
+		outSchema.SkipOptionalPointer = tm.SkipOptionalPointer
+		return nil
+	}
+
 	switch t {
 	case "array":
 		// For arrays, we'll get the type of the Items and throw a
